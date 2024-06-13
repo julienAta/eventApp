@@ -1,4 +1,3 @@
-// app/events/page.tsx
 import EventList from "../../components/EventList";
 import { FC } from "react";
 
