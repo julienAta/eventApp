@@ -19,7 +19,6 @@ export const getEventById = async (req, res) => {
 export const createEvent = (req, res) => {
   const events = getEvents();
   const newEvent = { id: Date.now().toString(), ...req.body };
-  console.log("newEvent", newEvent);
   events.push(newEvent);
   res.status(201).json(newEvent);
 };
