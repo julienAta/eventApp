@@ -9,6 +9,8 @@ export const metadata: Metadata = {
   title: "Event Manager",
   description: "A simple event manager app built with Next.js",
 };
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 
 export default function RootLayout({
   children,
@@ -18,7 +20,7 @@ export default function RootLayout({
   return (
     <ReactQueryProvider>
       <html lang="en">
-        <body className={inter.className}>
+        <body className={GeistMono.className}>
           <main>
             <Navbar />
             {children}
