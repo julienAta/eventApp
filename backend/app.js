@@ -1,5 +1,6 @@
 import express from "express";
 import bodyParser from "body-parser";
+import cors from "cors";
 import { eventRoutes, userRoutes } from "./routes/index.js";
 import { requestLogger, errorHandler } from "./middlewares/index.js";
 import { renderDebugView } from "./views/debugView.js";
@@ -9,6 +10,8 @@ const port = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
 app.use(requestLogger);
+
+app.use(cors());
 
 app.set("view engine", "ejs");
 
