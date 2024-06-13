@@ -5,9 +5,11 @@ import { Card } from "../ui/card";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 export function EventDetail({ event }: { event: any }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const handleDelete = async () => {
     try {
       const response = await fetch(
@@ -16,12 +18,15 @@ export function EventDetail({ event }: { event: any }) {
           method: "DELETE",
         }
       );
-      console.log(response, "response");
 
       if (!response.ok) {
         throw new Error("Failed to delete the event.");
       }
       toast("Event deleted successfully");
+      await queryClient.invalidateQueries({
+        queryKey: ["events"],
+      });
+
       router.push("/events");
     } catch (error) {
       toast("Failed to delete the event.");
@@ -55,7 +60,10 @@ export function EventDetail({ event }: { event: any }) {
           <Link href={`/events/${event.id}/edit`}>
             <Button className="w-full sm:w-auto">Update Event Details</Button>
           </Link>
-          <Button onClick={handleDelete} className="w-full sm:w-auto ml-5">
+          <Button
+            onClick={() => handleDelete()}
+            className="w-full sm:w-auto ml-5"
+          >
             Delete Event
           </Button>
         </div>

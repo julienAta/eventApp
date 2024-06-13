@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 interface EventFormProps {
   event?: {
     id?: string;
@@ -32,7 +33,7 @@ const EventForm: FC<EventFormProps> = ({ event, formType }) => {
   const [location, setLocation] = useState(event?.location || "");
   const router = useRouter();
   const params = useParams();
-
+  const queryClient = useQueryClient();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const eventData = { title, description, date, location };
@@ -64,7 +65,13 @@ const EventForm: FC<EventFormProps> = ({ event, formType }) => {
         toast(
           `Event ${formType === "Create" ? "created" : "updated"} successfully!`
         );
+
         if (formType === "Create") {
+          console.log("hey");
+
+          queryClient.invalidateQueries({
+            queryKey: ["events"],
+          });
           router.push("/events");
         }
       } else {

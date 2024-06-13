@@ -1,15 +1,24 @@
+"use client";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
+import { fetchEvents } from "@/actions/events";
+import { useQuery } from "@tanstack/react-query";
 
 export function EventList({ events }: { events: any[] }) {
+  const { data } = useQuery({
+    queryFn: () => fetchEvents(),
+    queryKey: ["events"],
+    initialData: events,
+    staleTime: 0,
+  });
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">Upcoming Events</h1>
-      {events.length < 1 ? (
+      {data.length < 1 ? (
         <p className="text-gray-600">There are no upcoming events.</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {events.map((event, index) => (
+          {data.map((event, index) => (
             <Link href={`/events/${event.id}`} key={index} passHref>
               <Card className="bg-white shadow-md rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300">
                 <CardContent className="p-6">
