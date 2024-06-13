@@ -2,8 +2,6 @@ import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 
 export function EventList({ events }: { events: any[] }) {
-  console.log(events, "eventsss");
-
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">Upcoming Events</h1>

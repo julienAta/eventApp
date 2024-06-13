@@ -1,6 +1,5 @@
 import { supabase } from "../supabase/supabaseClient.js";
 
-// Get all events
 export const getEvents = async () => {
   const { data, error } = await supabase.from("events").select("*");
   if (error) {
@@ -9,7 +8,6 @@ export const getEvents = async () => {
   return data;
 };
 
-// Add a new event
 export const addEvent = async (event) => {
   const { data, error } = await supabase.from("events").insert([event]);
   if (error) {
@@ -18,7 +16,6 @@ export const addEvent = async (event) => {
   return data;
 };
 
-// Update an existing event
 export const updateEvent = async (id, updatedEvent) => {
   const { data, error } = await supabase
     .from("events")
@@ -30,7 +27,6 @@ export const updateEvent = async (id, updatedEvent) => {
   return data;
 };
 
-// Delete an event
 export const deleteEvent = async (id) => {
   const { data, error } = await supabase.from("events").delete().eq("id", id);
   if (error) {

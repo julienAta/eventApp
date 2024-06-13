@@ -1,43 +1,65 @@
-import { getEvents } from "../models/eventModel.js";
+import {
+  getEvents,
+  addEvent,
+  updateEvent,
+  deleteEvent,
+} from "../models/eventModel.js";
 
 export const getAllEvents = async (req, res) => {
-  const events = await getEvents();
-  res.status(200).json(events);
+  try {
+    const events = await getEvents();
+    res.status(200).json(events);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
 };
 
 export const getEventById = async (req, res) => {
-  const events = await getEvents();
-  const eventID = parseInt(req.params.id, 10);
-  const event = events.find((e) => e.id === eventID);
-  if (event) {
-    res.json(event);
-  } else {
-    res.status(404).send("Event not found");
+  try {
+    const events = await getEvents();
+    const eventID = parseInt(req.params.id, 10);
+    const event = events.find((e) => e.id === eventID);
+    if (event) {
+      res.json(event);
+    } else {
+      res.status(404).send("Event not found");
+    }
+  } catch (error) {
+    res.status(500).send(error.message);
   }
 };
 
-export const createEvent = (req, res) => {
-  const events = getEvents();
-  const newEvent = { id: Date.now().toString(), ...req.body };
-  events.push(newEvent);
-  res.status(201).json(newEvent);
-};
-
-export const updateEventById = (req, res) => {
-  const { id } = req.params;
-  const updatedEvent = req.body;
-  const index = events.findIndex((event) => event.id === id);
-  if (index !== -1) {
-    events[index] = { ...events[index], ...updatedEvent };
-    res.json(events[index]);
-  } else {
-    res.status(404).send("Event not found");
+export const createEvent = async (req, res) => {
+  try {
+    const newEvent = { ...req.body };
+    const data = await addEvent(newEvent);
+    res.status(201).json(data);
+  } catch (error) {
+    res.status(500).send(error.message);
   }
 };
 
-export const deleteEventById = (req, res) => {
-  const events = getEvents();
-  const { id } = req.params;
-  events = events.filter((event) => event.id !== id);
-  res.status(204).send();
+export const updateEventById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedEvent = req.body;
+    const data = await updateEvent(id, updatedEvent);
+    if (data.length) {
+      res.json(data[0]);
+    } else {
+      res.status(404).send("Event not found");
+    }
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};
+
+export const deleteEventById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await deleteEvent(id);
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
 };
