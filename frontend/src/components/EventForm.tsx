@@ -67,8 +67,6 @@ const EventForm: FC<EventFormProps> = ({ event, formType }) => {
         );
 
         if (formType === "Create") {
-          console.log("hey");
-
           queryClient.invalidateQueries({
             queryKey: ["events"],
           });

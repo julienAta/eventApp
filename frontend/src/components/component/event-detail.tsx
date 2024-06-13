@@ -22,11 +22,11 @@ export function EventDetail({ event }: { event: any }) {
       if (!response.ok) {
         throw new Error("Failed to delete the event.");
       }
-      toast("Event deleted successfully");
-      await queryClient.invalidateQueries({
+
+      queryClient.invalidateQueries({
         queryKey: ["events"],
       });
-
+      toast("Event deleted successfully");
       router.push("/events");
     } catch (error) {
       toast("Failed to delete the event.");

@@ -4,7 +4,7 @@ import "./globals.css";
 import ReactQueryProvider from "@/providers/ReactQueryProvider";
 import { Navbar } from "@/components/component/navbar";
 const inter = Inter({ subsets: ["latin"] });
-
+import { Toaster } from "@/components/ui/sonner";
 export const metadata: Metadata = {
   title: "Event Manager",
   description: "A simple event manager app built with Next.js",
@@ -19,8 +19,11 @@ export default function RootLayout({
     <ReactQueryProvider>
       <html lang="en">
         <body className={inter.className}>
-          <Navbar />
-          {children}
+          <main>
+            <Navbar />
+            {children}
+          </main>
+          <Toaster />
         </body>
       </html>
     </ReactQueryProvider>
