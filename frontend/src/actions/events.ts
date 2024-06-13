@@ -1,7 +1,6 @@
 "use server";
-
+const backendUrl = process.env.BACKEND_URL || "http://localhost:3000";
 const fetchEvents = async () => {
-  const backendUrl = process.env.BACKEND_URL || "http://localhost:3000";
   try {
     const res = await fetch(`${backendUrl}/api/events`, {
       method: "GET",
@@ -34,5 +33,15 @@ const fetchEvents = async () => {
     return [];
   }
 };
+const fetchEvent = async (id: number) => {
+  const res = await fetch(`${backendUrl}/api/events/${id}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  const data = await res.json();
+  return data;
+};
 
-export default fetchEvents;
+export { fetchEvents, fetchEvent };
