@@ -1,15 +1,7 @@
-import EventList from "../../components/EventList";
-import { FC } from "react";
+import { EventList } from "@/components/component/event-list";
+import fetchEvents from "@/actions/events";
 
-const fetchEvents = async () => {
-  const res = await fetch("http://localhost:3000/api/events");
-  if (!res.ok) {
-    throw new Error("Failed to fetch events");
-  }
-  return res.json();
-};
-
-const EventsPage: FC = async () => {
+const EventsPage = async () => {
   const events = await fetchEvents();
   console.log(events, "events");
 
