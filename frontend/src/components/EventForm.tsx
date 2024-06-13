@@ -1,6 +1,6 @@
 "use client";
 import { FC, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   CardTitle,
   CardDescription,
@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface EventFormProps {
   event?: {
@@ -31,31 +32,52 @@ const EventForm: FC<EventFormProps> = ({ event, formType }) => {
   const [date, setDate] = useState(event?.date || "");
   const [location, setLocation] = useState(event?.location || "");
   const router = useRouter();
+  const params = useParams();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const eventData = { title, description, date, location };
-    console.log(eventData, "eventData");
 
-    if (formType === "Create") {
-      await fetch("http://localhost:3000/api/events", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(eventData),
-      });
-    } else {
-      await fetch(`http://localhost:3000/api/events/${event?.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(eventData),
-      });
+    try {
+      let response;
+      if (formType === "Create") {
+        response = await fetch("http://localhost:3000/api/events", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(eventData),
+        });
+      } else {
+        response = await fetch(
+          `http://localhost:3000/api/events/${params.id}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(eventData),
+          }
+        );
+      }
+
+      if (response.ok) {
+        toast(
+          `Event ${formType === "Create" ? "created" : "updated"} successfully!`
+        );
+        if (formType === "Create") {
+          router.push("/events");
+        }
+      } else {
+        throw new Error("Something went wrong");
+      }
+    } catch (error) {
+      toast(
+        `Failed to ${
+          formType === "Create" ? "create" : "update"
+        } event: ${error}`
+      );
     }
-
-    router.push("/events");
   };
 
   return (

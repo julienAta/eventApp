@@ -20,7 +20,10 @@ export const updateEvent = async (id, updatedEvent) => {
   const { data, error } = await supabase
     .from("events")
     .update(updatedEvent)
-    .eq("id", id);
+    .eq("id", id)
+    .select()
+    .single();
+
   if (error) {
     throw new Error(error.message);
   }

@@ -44,19 +44,20 @@ export const updateEventById = async (req, res) => {
     const { id } = req.params;
     const updatedEvent = req.body;
     const data = await updateEvent(id, updatedEvent);
-    if (data.length) {
-      res.json(data[0]);
+    if (data) {
+      res.status(200).json({ message: "Event updated", event: data });
     } else {
-      res.status(404).send("Event not found");
+      res.status(404).json({ message: "Event not found" });
     }
   } catch (error) {
-    res.status(500).send(error.message);
+    res.status(500).json({ message: error.message });
   }
 };
 
 export const deleteEventById = async (req, res) => {
   try {
     const { id } = req.params;
+    console.log(id, "id");
     await deleteEvent(id);
     res.status(204).send();
   } catch (error) {

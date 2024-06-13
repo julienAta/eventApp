@@ -1,9 +1,33 @@
+"use client";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon, LocateIcon } from "lucide-react";
 import { Card } from "../ui/card";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export function EventDetail({ event }: { event: any }) {
+  const router = useRouter();
+  const handleDelete = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/events/${event.id}`,
+        {
+          method: "DELETE",
+        }
+      );
+      console.log(response, "response");
+
+      if (!response.ok) {
+        throw new Error("Failed to delete the event.");
+      }
+      toast("Event deleted successfully");
+      router.push("/events");
+    } catch (error) {
+      toast("Failed to delete the event.");
+      console.error("Error deleting event:", error);
+    }
+  };
   return (
     <Card className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20 mt-20">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -31,6 +55,9 @@ export function EventDetail({ event }: { event: any }) {
           <Link href={`/events/${event.id}/edit`}>
             <Button className="w-full sm:w-auto">Update Event Details</Button>
           </Link>
+          <Button onClick={handleDelete} className="w-full sm:w-auto ml-5">
+            Delete Event
+          </Button>
         </div>
         <div>
           <img
