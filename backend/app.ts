@@ -1,17 +1,16 @@
 import express from "express";
-import bodyParser from "body-parser";
 import cors from "cors";
 import dotenv from "dotenv";
 
-import { eventRoutes, userRoutes } from "./routes/index.js";
-import { requestLogger, errorHandler } from "./middlewares/index.js";
-import { renderDebugView } from "./views/debugView.js";
+import router from "./routes/index";
+import { requestLogger, errorHandler } from "./middlewares";
+import { renderDebugView } from "./views/debugView";
 
 dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(bodyParser.json());
+app.use(express.json());
 app.use(requestLogger);
 
 app.use(
@@ -20,11 +19,9 @@ app.use(
   })
 );
 
+app.use("/api", router);
+
 app.set("view engine", "ejs");
-
-app.use("/api/events", eventRoutes);
-app.use("/api/users", userRoutes);
-
 app.get("/debug", renderDebugView);
 
 app.use(errorHandler);
