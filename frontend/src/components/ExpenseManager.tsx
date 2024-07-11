@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { Card, CardTitle } from "./ui/card";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
@@ -137,9 +138,9 @@ export default function ExpenseManager({
   };
 
   return (
-    <div className="space-y-4">
+    <Card className="space-y-4 p-5">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Expenses</h2>
+        <CardTitle className="text-2xl font-bold">Expenses</CardTitle>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -307,6 +308,6 @@ export default function ExpenseManager({
           <Button onClick={handleEditExpense}>Save Changes</Button>
         </DialogContent>
       </Dialog>
-    </div>
+    </Card>
   );
 }
