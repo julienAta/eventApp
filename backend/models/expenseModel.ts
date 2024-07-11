@@ -1,38 +1,56 @@
+import { createClient } from "@supabase/supabase-js";
 import { Expense, NewExpense } from "../schemas/expenseSchema";
 
-let expenses: Expense[] = [];
+// Initialize Supabase client
+const supabaseUrl = process.env.SUPABASE_URL as string;
+const supabaseKey = process.env.SUPABASE_ANON_KEY as string;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 export const getExpenses = async (): Promise<Expense[]> => {
-  return expenses;
+  const { data, error } = await supabase.from("expenses").select("*");
+
+  if (error) throw error;
+  return data as Expense[];
 };
 
 export const getExpensesByEventId = async (
   eventId: number
 ): Promise<Expense[]> => {
-  return expenses.filter((expense) => expense.eventId === eventId);
+  const { data, error } = await supabase
+    .from("expenses")
+    .select("*")
+    .eq("event_id", eventId);
+
+  if (error) throw error;
+  return data as Expense[];
 };
 
 export const addExpense = async (newExpense: NewExpense): Promise<Expense> => {
-  const expense: Expense = {
-    id: expenses.length + 1,
-    ...newExpense,
-  };
-  expenses.push(expense);
-  return expense;
+  const { data, error } = await supabase
+    .from("expenses")
+    .insert(newExpense)
+    .single();
+
+  if (error) throw error;
+  return data as Expense;
 };
 
 export const updateExpense = async (
   id: string,
   updatedExpense: Partial<NewExpense>
 ): Promise<Expense | null> => {
-  const index = expenses.findIndex((e) => e.id === parseInt(id, 10));
-  if (index !== -1) {
-    expenses[index] = { ...expenses[index], ...updatedExpense };
-    return expenses[index];
-  }
-  return null;
+  const { data, error } = await supabase
+    .from("expenses")
+    .update(updatedExpense)
+    .eq("id", id)
+    .single();
+
+  if (error) throw error;
+  return data as Expense;
 };
 
 export const deleteExpense = async (id: string): Promise<void> => {
-  expenses = expenses.filter((e) => e.id !== parseInt(id, 10));
+  const { error } = await supabase.from("expenses").delete().eq("id", id);
+
+  if (error) throw error;
 };
