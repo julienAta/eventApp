@@ -1,18 +1,103 @@
-import { EventDetail } from "@/components/event-detail";
-import { fetchEvent } from "@/actions/events";
+"use client";
 
-export default async function EventDetailPage({
+import React, { useState, useEffect } from "react";
+import { EventDetail } from "@/components/event-detail";
+import { Chat } from "@/components/chat";
+
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000/api";
+
+async function getCurrentUser() {
+  const token = localStorage.getItem("token"); // Get token from localStorage
+
+  if (!token) {
+    return null;
+  }
+
+  const response = await fetch(`${API_BASE_URL}/users/me`, {
+    headers: {
+      Authorization: `Bearer ${token}`, // Send token in Authorization header
+    },
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  return response.json();
+}
+
+async function fetchEvent(id: number) {
+  const token = localStorage.getItem("token");
+
+  const response = await fetch(`${API_BASE_URL}/events/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch event");
+  }
+
+  return response.json();
+}
+
+export default function EventDetailPage({
   params,
 }: {
-  params: { id: number };
+  params: { id: string };
 }) {
-  const id = params.id;
+  const [event, setEvent] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const event = await fetchEvent(id);
+  useEffect(() => {
+    const id = parseInt(params.id, 10);
 
-  if (!event) {
+    async function fetchData() {
+      try {
+        const [eventData, userData] = await Promise.all([
+          fetchEvent(id),
+          getCurrentUser(),
+        ]);
+
+        setEvent(eventData);
+        setCurrentUser(userData);
+      } catch (err) {
+        console.log("error fetching data", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, [params.id]);
+
+  if (loading) {
     return <p>Loading...</p>;
   }
 
-  return <EventDetail event={event} />;
+  if (error) {
+    return <p>An error occurred: {error}</p>;
+  }
+
+  if (!event) {
+    return <p>Event not found</p>;
+  }
+
+  if (!currentUser) {
+    return <p>Please log in to view this page</p>;
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <EventDetail event={event} />
+      <div className="mt-8">
+        <h2 className="text-2xl font-bold mb-4">Event Chat</h2>
+        <Chat eventId={parseInt(params.id, 10)} currentUser={currentUser} />
+      </div>
+    </div>
+  );
 }

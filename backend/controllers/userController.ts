@@ -8,6 +8,13 @@ import {
   UpdateUserSchema,
 } from "../schemas/userSchema";
 
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id: string;
+    name: string;
+  };
+}
+
 export const getAllUsers = async (
   req: Request,
   res: Response
@@ -40,6 +47,38 @@ export const getUserById = async (
   }
 };
 
+export const getCurrentUser = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const user = req.user;
+
+    if (!user) {
+      res.status(401).json({ message: "Not authenticated" });
+      return;
+    }
+    console.log(user, "user");
+
+    const userDetails = await userModel.getUserById(user.id);
+
+    if (!userDetails) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+
+    res.json({
+      id: userDetails.id,
+      name: userDetails.name,
+      // Add any other non-sensitive user properties you want to include
+    });
+  } catch (error) {
+    console.error("Error in getCurrentUser:", error);
+    res
+      .status(500)
+      .json({ message: "An error occurred while fetching user data" });
+  }
+};
 export const createUser = async (
   req: Request,
   res: Response

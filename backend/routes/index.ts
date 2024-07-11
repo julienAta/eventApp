@@ -7,6 +7,6 @@ const router = Router();
 
 router.use("/events", eventRoutes);
 router.use("/users", userRoutes);
-router.use("/api/chat", chatRoutes);
+router.use("/chat", chatRoutes);
 
 export default router;

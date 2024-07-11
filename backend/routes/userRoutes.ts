@@ -6,6 +6,7 @@ import {
   updateUser,
   deleteUser,
   loginUser,
+  getCurrentUser,
 } from "../controllers/userController";
 import { authenticateJWT } from "../middlewares/authMiddleware";
 
@@ -16,6 +17,7 @@ router.post("/", createUser);
 
 router.use(authenticateJWT);
 
+router.get("/me", getCurrentUser);
 router.get("/", getAllUsers);
 router.get("/:id", getUserById);
 router.put("/:id", updateUser);
