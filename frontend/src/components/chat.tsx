@@ -109,7 +109,7 @@ export function Chat({ eventId, currentUser }: ChatProps) {
   };
 
   return (
-    <div className="flex flex-col h-[600px] w-full max-w-md mx-auto bg-background rounded-lg shadow-lg overflow-hidden">
+    <div className="flex flex-col h-[500px] w-full max-w-md mx-auto bg-background rounded-lg shadow-lg overflow-hidden">
       <div className="flex-1 overflow-auto p-4 space-y-4">
         {messages.map((message) => (
           <div

@@ -1,5 +1,6 @@
 import { supabase } from "../supabase/supabaseClient";
 import { Event, NewEvent } from "../types/eventTypes";
+import { getExpensesByEventId } from "./expenseModel";
 
 export const getEvents = async (): Promise<Event[]> => {
   const { data, error } = await supabase.from("events").select("*");
@@ -7,7 +8,13 @@ export const getEvents = async (): Promise<Event[]> => {
   if (error) {
     throw new Error(error.message);
   }
-  return data;
+  const eventsWithExpenses = await Promise.all(
+    data.map(async (event) => {
+      const expenses = await getExpensesByEventId(event.id);
+      return { ...event, expenses: expenses.map((e) => e.id) };
+    })
+  );
+  return eventsWithExpenses;
 };
 
 export const addEvent = async (event: NewEvent): Promise<Event[]> => {

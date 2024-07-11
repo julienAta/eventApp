@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { EventDetail } from "@/components/event-detail";
 import { Chat } from "@/components/chat";
+import { Spinner } from "@/components/spinner";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000/api";
@@ -76,7 +77,7 @@ export default function EventDetailPage({
   }, [params.id]);
 
   if (loading) {
-    return <p>Loading...</p>;
+    return <Spinner />;
   }
 
   if (error) {
