@@ -7,9 +7,9 @@ import {
 import { authenticateJWT } from "../middlewares/authMiddleware";
 
 const router = Router();
-router.get("/:eventId/messages", getChatMessages);
-router.post("/:eventId/messages", createChatMessage);
 router.get("/:eventId/stream", streamChatMessages);
 router.use(authenticateJWT);
+router.get("/:eventId/messages", getChatMessages);
+router.post("/:eventId/messages", createChatMessage);
 
 export default router;

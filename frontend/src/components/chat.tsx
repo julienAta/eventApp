@@ -49,9 +49,15 @@ export function Chat({ eventId, currentUser }: ChatProps) {
   }, [messages]);
 
   const fetchMessages = async (): Promise<void> => {
+    const token = localStorage.getItem("token");
     try {
       const response = await fetch(
-        `${API_BASE_URL}/chat/${eventId.toString()}/messages`
+        `${API_BASE_URL}/chat/${eventId.toString()}/messages`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       if (!response.ok) {
         throw new Error("Network response was not ok");
@@ -65,6 +71,7 @@ export function Chat({ eventId, currentUser }: ChatProps) {
 
   const sendMessage = async (): Promise<void> => {
     if (!newMessage.trim()) return;
+    const token = localStorage.getItem("token");
 
     try {
       const response = await fetch(
@@ -73,6 +80,7 @@ export function Chat({ eventId, currentUser }: ChatProps) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
             content: newMessage.trim(),
