@@ -27,6 +27,7 @@ interface EventFormProps {
 }
 
 const EventForm: FC<EventFormProps> = ({ event, formType }) => {
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
   const [title, setTitle] = useState(event?.title || "");
   const [description, setDescription] = useState(event?.description || "");
   const [date, setDate] = useState(event?.date || "");
@@ -41,7 +42,7 @@ const EventForm: FC<EventFormProps> = ({ event, formType }) => {
     try {
       let response;
       if (formType === "Create") {
-        response = await fetch("http://localhost:3000/api/events", {
+        response = await fetch(`${BACKEND_URL}/events`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

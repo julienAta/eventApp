@@ -20,9 +20,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_NEXT_PUBLIC_BACKEND_URL ||
-  "http://localhost:3000/api";
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 interface Expense {
   id: number;

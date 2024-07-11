@@ -93,12 +93,12 @@ export default function EventDetailPage({
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 h-full">
-      <div className="flex flex-wrap -mx-4 h-full ">
+    <div className="container mx-auto px-4 py-8 h-full w-full">
+      <div className="flex flex-wrap -mx-4 h-full w-full">
         <div className="w-full md:w-1/2 px-4 mb-8 md:mb-0 h-full">
           <EventDetail event={event} />
         </div>
-        <div className="w-full md:w-1/2 px-4 flex flex-col justify-center items-center">
+        <div className="w-full md:w-1/2  flex flex-col justify-center items-center">
           <Chat eventId={parseInt(params.id, 10)} currentUser={currentUser} />
         </div>
       </div>

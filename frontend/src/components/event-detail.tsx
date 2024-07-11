@@ -8,16 +8,14 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 
 export function EventDetail({ event }: { event: any }) {
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
   const router = useRouter();
   const queryClient = useQueryClient();
   const handleDelete = async () => {
     try {
-      const response = await fetch(
-        `http://localhost:3000/api/events/${event.id}`,
-        {
-          method: "DELETE",
-        }
-      );
+      const response = await fetch(`${BACKEND_URL}/events/${event.id}`, {
+        method: "DELETE",
+      });
 
       if (!response.ok) {
         throw new Error("Failed to delete the event.");
