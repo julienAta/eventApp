@@ -18,6 +18,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000/api";
@@ -91,7 +92,7 @@ export default function ExpenseManager({
         paidBy: currentUser.name,
         date: new Date().toISOString().split("T")[0],
       });
-      //   setNewExpense({ eventid: eventId, paid_by: currentUser.name, date: new Date().toISOString().split('T')[0] });
+      toast("Expense added successfully");
     }
   };
 
@@ -109,10 +110,17 @@ export default function ExpenseManager({
         body: JSON.stringify(editingExpense),
       }
     );
+    console.log(response);
     if (response.ok) {
       fetchExpenses();
       setIsEditDialogOpen(false);
       setEditingExpense(null);
+      setNewExpense({
+        eventId,
+        paidBy: currentUser.name,
+        date: new Date().toISOString().split("T")[0],
+      });
+      toast("Expense updated successfully");
     }
   };
 
@@ -126,6 +134,7 @@ export default function ExpenseManager({
     });
     if (response.ok) {
       fetchExpenses();
+      toast("Expense deleted successfully");
     }
   };
 

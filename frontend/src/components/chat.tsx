@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "./ui/scroll-area";
 
 interface ChatMessage {
   id: string;
@@ -98,6 +99,7 @@ export function Chat({ eventId, currentUser }: ChatProps) {
       }
 
       setNewMessage("");
+      fetchMessages(); // Fetch messages again to get the latest ones
     } catch (error) {
       console.error("Error sending message:", error);
     }
@@ -113,10 +115,10 @@ export function Chat({ eventId, currentUser }: ChatProps) {
   };
 
   return (
-    <div className="flex flex-col h-full w-full max-w-md mx-auto bg-background rounded-lg shadow-lg border  overflow-hidden">
-      <div className="flex-1 overflow-auto p-4 space-y-4">
-        <h2 className="text-2xl font-bold mb-4">Event Chat</h2>
+    <div className="flex flex-col h-full max-h-[61dvh] w-full max-w-md mx-auto bg-background rounded-lg shadow-lg border overflow-hidden">
+      <h2 className="text-2xl font-bold mb-4 pt-5 px-5">Event Chat</h2>
 
+      <ScrollArea className="flex-1 p-4 space-y-4">
         {messages.map((message) => (
           <div
             key={message.id}
@@ -143,7 +145,7 @@ export function Chat({ eventId, currentUser }: ChatProps) {
           </div>
         ))}
         <div ref={messagesEndRef} />
-      </div>
+      </ScrollArea>
       <div className="bg-muted/50 px-4 py-2 flex items-center gap-2">
         <Textarea
           value={newMessage}

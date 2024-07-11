@@ -54,6 +54,7 @@ export const updateExpense = async (
     .from("expenses")
     .update(updatedExpense)
     .eq("id", id)
+    .select()
     .single();
 
   if (error) throw error;
