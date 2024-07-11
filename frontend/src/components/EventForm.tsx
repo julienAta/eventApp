@@ -50,16 +50,13 @@ const EventForm: FC<EventFormProps> = ({ event, formType }) => {
           body: JSON.stringify(eventData),
         });
       } else {
-        response = await fetch(
-          `http://localhost:3000/api/events/${params.id}`,
-          {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(eventData),
-          }
-        );
+        response = await fetch(`${BACKEND_URL}/events/${params.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(eventData),
+        });
       }
 
       if (response.ok) {
