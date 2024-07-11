@@ -18,7 +18,7 @@ export function EventList({ events }: { events: any[] }) {
         <p className="text-gray-600">There are no upcoming events.</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {data.map((event, index) => (
+          {data.map((event: any, index: number) => (
             <Link href={`/events/${event.id}`} key={index} passHref>
               <Card className="bg-white shadow-md rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col h-full">
                 <CardContent className="p-6 flex flex-col flex-grow">
