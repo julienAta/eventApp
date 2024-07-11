@@ -1,7 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon, LocateIcon } from "lucide-react";
-import { Card } from "../ui/card";
+import { Card } from "@/components/ui/card";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";

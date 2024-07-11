@@ -3,8 +3,9 @@ import { z } from "zod";
 export const EventSchema = z.object({
   id: z.number(),
   title: z.string().min(1),
-  date: z.string().datetime(),
+  date: z.string(),
   description: z.string().optional(),
+  location: z.string(),
 });
 
 export const NewEventSchema = EventSchema.omit({ id: true });

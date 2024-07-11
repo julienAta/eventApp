@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import ReactQueryProvider from "@/providers/ReactQueryProvider";
-import { Navbar } from "@/components/component/navbar";
-const inter = Inter({ subsets: ["latin"] });
+import { Navbar } from "@/components/navbar";
 import { Toaster } from "@/components/ui/sonner";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
+import { AuthWrapper } from "@/components/AuthWrapper";
+
 export const metadata: Metadata = {
   title: "Event Manager",
   description: "A simple event manager app built with Next.js",
 };
-import { GeistSans } from "geist/font/sans";
-import { GeistMono } from "geist/font/mono";
 
 export default function RootLayout({
   children,
@@ -19,13 +19,15 @@ export default function RootLayout({
 }>) {
   return (
     <ReactQueryProvider>
-      <html lang="en">
+      <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
         <body className={GeistMono.className}>
-          <main>
-            <Navbar />
-            {children}
-          </main>
-          <Toaster />
+          <AuthWrapper>
+            <main>
+              <Navbar />
+              {children}
+            </main>
+            <Toaster />
+          </AuthWrapper>
         </body>
       </html>
     </ReactQueryProvider>

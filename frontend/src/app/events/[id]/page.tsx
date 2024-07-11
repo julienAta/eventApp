@@ -1,4 +1,4 @@
-import { EventDetail } from "@/components/component/event-detail";
+import { EventDetail } from "@/components/event-detail";
 import { fetchEvent } from "@/actions/events";
 
 export default async function EventDetailPage({

@@ -13,8 +13,7 @@ export const getAllEvents = async (
 ): Promise<void> => {
   try {
     const events = await getEvents();
-    const validatedEvents = EventSchema.array().parse(events);
-    res.status(200).json(validatedEvents);
+    res.status(200).json(events);
   } catch (error) {
     res.status(500).send((error as Error).message);
   }

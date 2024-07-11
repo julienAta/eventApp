@@ -3,10 +3,11 @@ import { Event, NewEvent } from "../types/eventTypes";
 
 export const getEvents = async (): Promise<Event[]> => {
   const { data, error } = await supabase.from("events").select("*");
+
   if (error) {
     throw new Error(error.message);
   }
-  return data || [];
+  return data;
 };
 
 export const addEvent = async (event: NewEvent): Promise<Event[]> => {
