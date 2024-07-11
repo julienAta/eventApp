@@ -31,6 +31,7 @@ export const addExpense = async (newExpense: NewExpense): Promise<Expense> => {
       date: newExpense.date,
       paid_by: newExpense.paid_by,
     })
+    .select()
     .single();
 
   if (error) {

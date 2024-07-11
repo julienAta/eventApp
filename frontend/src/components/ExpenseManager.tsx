@@ -86,6 +86,11 @@ export default function ExpenseManager({
     if (response.ok) {
       fetchExpenses();
       setIsAddDialogOpen(false);
+      setNewExpense({
+        eventId,
+        paidBy: currentUser.name,
+        date: new Date().toISOString().split("T")[0],
+      });
       //   setNewExpense({ eventid: eventId, paid_by: currentUser.name, date: new Date().toISOString().split('T')[0] });
     }
   };
