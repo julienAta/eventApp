@@ -14,9 +14,6 @@ export const addUser = async (user: NewUser): Promise<User> => {
     .select()
     .single();
 
-  console.log(data, "data");
-  console.log(error, "error");
-
   if (error) throw error;
   return data as User;
 };

@@ -1,8 +1,12 @@
 import { Request, Response } from "express";
-import { NewUser, UpdateUser } from "../types/userTypes";
 import * as userModel from "../models/userModel";
 import * as argon2 from "argon2";
 import { generateToken } from "../utils/jwtUtils";
+import {
+  UserSchema,
+  NewUserSchema,
+  UpdateUserSchema,
+} from "../schemas/userSchema";
 
 export const getAllUsers = async (
   req: Request,
@@ -10,7 +14,8 @@ export const getAllUsers = async (
 ): Promise<void> => {
   try {
     const users = await userModel.getAllUsers();
-    res.json(users);
+    const validatedUsers = UserSchema.array().parse(users);
+    res.json(validatedUsers);
   } catch (error) {
     res.status(500).json({ message: "An error occurred while fetching users" });
   }
@@ -23,7 +28,8 @@ export const getUserById = async (
   try {
     const user = await userModel.getUserById(req.params.id);
     if (user) {
-      res.json(user);
+      const validatedUser = UserSchema.parse(user);
+      res.json(validatedUser);
     } else {
       res.status(404).send("User not found");
     }
@@ -39,15 +45,18 @@ export const createUser = async (
   res: Response
 ): Promise<void> => {
   try {
-    const newUser: NewUser = req.body;
+    const newUser = NewUserSchema.parse(req.body);
     const createdUser = await userModel.addUser(newUser);
-    console.log(createdUser, "created user");
-
-    res.status(201).json(createdUser);
+    const validatedUser = UserSchema.parse(createdUser);
+    res.status(201).json(validatedUser);
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "An error occurred while creating the user" });
+    if (error instanceof Error) {
+      res.status(400).json({ error: error.message });
+    } else {
+      res
+        .status(500)
+        .json({ message: "An error occurred while creating the user" });
+    }
   }
 };
 
@@ -56,17 +65,22 @@ export const updateUser = async (
   res: Response
 ): Promise<void> => {
   try {
-    const updatedUser: UpdateUser = req.body;
+    const updatedUser = UpdateUserSchema.parse(req.body);
     const user = await userModel.updateUser(req.params.id, updatedUser);
     if (user) {
-      res.json(user);
+      const validatedUser = UserSchema.parse(user);
+      res.json(validatedUser);
     } else {
       res.status(404).send("User not found");
     }
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "An error occurred while updating the user" });
+    if (error instanceof Error) {
+      res.status(400).json({ error: error.message });
+    } else {
+      res
+        .status(500)
+        .json({ message: "An error occurred while updating the user" });
+    }
   }
 };
 
@@ -89,8 +103,9 @@ export const deleteUser = async (
 };
 
 export const loginUser = async (req: Request, res: Response): Promise<void> => {
-  const { email, password } = req.body;
+  const loginSchema = NewUserSchema.pick({ email: true, password: true });
   try {
+    const { email, password } = loginSchema.parse(req.body);
     const user = await userModel.findUserByEmail(email);
 
     if (!user) {
@@ -108,6 +123,10 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     const token = generateToken(user);
     res.json({ token });
   } catch (error) {
-    res.status(500).json({ message: "An error occurred during login" });
+    if (error instanceof Error) {
+      res.status(400).json({ error: error.message });
+    } else {
+      res.status(500).json({ message: "An error occurred during login" });
+    }
   }
 };
