@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { verifyToken } from "../utils/jwtUtils";
+import { verifyToken } from "../utils/jwtUtils.js";
 import { z } from "zod";
 
 const TokenPayloadSchema = z.object({

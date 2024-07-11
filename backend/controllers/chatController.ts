@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import * as chatModel from "../models/chatModel";
+import * as chatModel from "../models/chatModel.js";
 import { EventEmitter } from "events";
 
 const chatEmitter = new EventEmitter();

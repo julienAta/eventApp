@@ -2,9 +2,9 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 
-import router from "./routes/index";
-import { requestLogger, errorHandler } from "./middlewares";
-import { renderDebugView } from "./views/debugView";
+import router from "./routes/index.js";
+import { requestLogger, errorHandler } from "./middlewares/index.js";
+import { renderDebugView } from "./views/debugView.js";
 
 dotenv.config();
 const app = express();

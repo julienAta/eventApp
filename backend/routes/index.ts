@@ -1,8 +1,8 @@
 import { Router } from "express";
-import eventRoutes from "./eventRoutes";
-import userRoutes from "./userRoutes";
-import chatRoutes from "./chatRoutes";
-import expenseRoutes from "./expenseRoutes";
+import eventRoutes from "./eventRoutes.js";
+import userRoutes from "./userRoutes.js";
+import chatRoutes from "./chatRoutes.js";
+import expenseRoutes from "./expenseRoutes.js";
 
 const router = Router();
 

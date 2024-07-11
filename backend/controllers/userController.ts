@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
-import * as userModel from "../models/userModel";
+import * as userModel from "../models/userModel.js";
 import * as argon2 from "argon2";
-import { generateToken } from "../utils/jwtUtils";
+import { generateToken } from "../utils/jwtUtils.js";
 import {
   UserSchema,
   NewUserSchema,
   UpdateUserSchema,
-} from "../schemas/userSchema";
+} from "../schemas/userSchema.js";
 
 interface AuthenticatedRequest extends Request {
   user?: {

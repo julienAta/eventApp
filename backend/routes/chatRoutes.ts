@@ -3,8 +3,8 @@ import {
   getChatMessages,
   createChatMessage,
   streamChatMessages,
-} from "../controllers/chatController";
-import { authenticateJWT } from "../middlewares/authMiddleware";
+} from "../controllers/chatController.js";
+import { authenticateJWT } from "../middlewares/authMiddleware.js";
 
 const router = Router();
 router.get("/:eventId/stream", streamChatMessages);

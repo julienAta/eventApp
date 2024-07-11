@@ -1,5 +1,6 @@
 // authService.ts
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api";
+const API_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000/api";
 
 export async function signIn(email: string, password: string) {
   const response = await fetch(`${API_URL}/users/login`, {

@@ -1,3 +1,3 @@
-export { requestLogger } from "./requestLogger";
-export { errorHandler } from "./errorHandler";
-export { authenticateJWT } from "./authMiddleware";
+export { requestLogger } from "./requestLogger.js";
+export { errorHandler } from "./errorHandler.js";
+export { authenticateJWT } from "./authMiddleware.js";

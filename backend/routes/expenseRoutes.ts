@@ -5,7 +5,7 @@ import {
   createExpense,
   updateExpenseById,
   deleteExpenseById,
-} from "../controllers/expenseController";
+} from "../controllers/expenseController.js";
 
 const router = Router();
 

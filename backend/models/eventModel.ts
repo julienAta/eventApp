@@ -1,6 +1,6 @@
-import { supabase } from "../supabase/supabaseClient";
-import { Event, NewEvent } from "../types/eventTypes";
-import { getExpensesByEventId } from "./expenseModel";
+import { supabase } from "../supabase/supabaseClient.js";
+import { Event, NewEvent } from "../types/eventTypes.js";
+import { getExpensesByEventId } from "./expenseModel.js";
 
 export const getEvents = async (): Promise<Event[]> => {
   const { data, error } = await supabase.from("events").select("*");

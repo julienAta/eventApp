@@ -7,7 +7,7 @@ import { Spinner } from "@/components/spinner";
 import ExpenseManager from "@/components/ExpenseManager";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000/api";
+  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000/api";
 
 async function getCurrentUser() {
   const token = localStorage.getItem("token");

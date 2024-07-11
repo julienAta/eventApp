@@ -1,5 +1,5 @@
-import { getEvents, addEvent, updateEvent, deleteEvent } from "./eventModel";
-import { getAllUsers, addUser, updateUser, deleteUser } from "./userModel";
+import { getEvents, addEvent, updateEvent, deleteEvent } from "./eventModel.js";
+import { getAllUsers, addUser, updateUser, deleteUser } from "./userModel.js";
 import {
   getExpenses,
   addExpense,

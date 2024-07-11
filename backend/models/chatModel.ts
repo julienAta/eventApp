@@ -1,4 +1,4 @@
-import { supabase } from "../supabase/supabaseClient";
+import { supabase } from "../supabase/supabaseClient.js";
 import { ChatMessage, NewChatMessage } from "../types/chatTypes";
 
 export const getChatMessages = async (

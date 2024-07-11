@@ -2,10 +2,11 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
+  "type": "module",
   "main": "app.ts",
   "scripts": {
-    "start": "nodemon --exec ts-node app.ts",
-    "dev": "nodemon --exec ts-node app.ts",
+    "start": "node --loader ts-node/esm app.ts",
+    "dev": "nodemon --exec node --loader ts-node/esm app.ts",
     "build": "tsc"
   },
   "keywords": [],

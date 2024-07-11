@@ -1,5 +1,5 @@
-import { Expense, NewExpense } from "../schemas/expenseSchema";
-import { supabase } from "../supabase/supabaseClient";
+import { Expense, NewExpense } from "../schemas/expenseSchema.js";
+import { supabase } from "../supabase/supabaseClient.js";
 
 export const getExpenses = async (): Promise<Expense[]> => {
   const { data, error } = await supabase.from("expenses").select("*");

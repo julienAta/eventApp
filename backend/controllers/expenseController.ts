@@ -5,8 +5,8 @@ import {
   addExpense,
   updateExpense,
   deleteExpense,
-} from "../models/expenseModel";
-import { ExpenseSchema, NewExpenseSchema } from "../schemas/expenseSchema";
+} from "../models/expenseModel.js";
+import { ExpenseSchema, NewExpenseSchema } from "../schemas/expenseSchema.js";
 
 export const getAllExpenses = async (
   req: Request,

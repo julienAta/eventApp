@@ -4,8 +4,8 @@ import {
   addEvent,
   updateEvent,
   deleteEvent,
-} from "../models/eventModel";
-import { EventSchema, NewEventSchema } from "../schemas/eventSchema";
+} from "../models/eventModel.js";
+import { EventSchema, NewEventSchema } from "../schemas/eventSchema.js";
 
 export const getAllEvents = async (
   req: Request,
