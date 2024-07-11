@@ -1,10 +1,5 @@
-import { createClient } from "@supabase/supabase-js";
 import { Expense, NewExpense } from "../schemas/expenseSchema";
-
-// Initialize Supabase client
-const supabaseUrl = process.env.SUPABASE_URL as string;
-const supabaseKey = process.env.SUPABASE_ANON_KEY as string;
-const supabase = createClient(supabaseUrl, supabaseKey);
+import { supabase } from "../supabase/supabaseClient";
 
 export const getExpenses = async (): Promise<Expense[]> => {
   const { data, error } = await supabase.from("expenses").select("*");
