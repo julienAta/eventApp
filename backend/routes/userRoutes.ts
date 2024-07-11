@@ -5,13 +5,19 @@ import {
   createUser,
   updateUser,
   deleteUser,
+  loginUser,
 } from "../controllers/userController";
+import { authenticateJWT } from "../middlewares/authMiddleware";
 
 const router = Router();
 
+router.post("/login", loginUser);
+router.post("/", createUser);
+
+router.use(authenticateJWT);
+
 router.get("/", getAllUsers);
 router.get("/:id", getUserById);
-router.post("/", createUser);
 router.put("/:id", updateUser);
 router.delete("/:id", deleteUser);
 
