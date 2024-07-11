@@ -1,0 +1,17 @@
+{
+  "name": "eventapp",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "start:backend": "pnpm --filter backend start",
+    "start:frontend": "pnpm --filter frontend dev",
+    "start": "concurrently \"pnpm --filter backend start\" \"pnpm --filter frontend dev\""
+  },
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "devDependencies": {
+    "concurrently": "^6.0.0"
+  }
+}

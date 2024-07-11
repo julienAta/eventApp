@@ -10,7 +10,7 @@ const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000/api";
 
 async function getCurrentUser() {
-  const token = localStorage.getItem("token"); // Get token from localStorage
+  const token = localStorage.getItem("token");
 
   if (!token) {
     return null;
@@ -18,7 +18,7 @@ async function getCurrentUser() {
 
   const response = await fetch(`${API_BASE_URL}/users/me`, {
     headers: {
-      Authorization: `Bearer ${token}`, // Send token in Authorization header
+      Authorization: `Bearer ${token}`,
     },
   });
 
