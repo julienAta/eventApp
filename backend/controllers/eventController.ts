@@ -13,9 +13,11 @@ export const getAllEvents = async (
 ): Promise<void> => {
   try {
     const events = await getEvents();
-    res.status(200).json(events);
+    res
+      .status(200)
+      .json({ message: "Events fetched successfully", events: events });
   } catch (error) {
-    res.status(500).send((error as Error).message);
+    res.status(500).json({ message: "An unexpected error occurred" });
   }
 };
 
@@ -29,12 +31,15 @@ export const getEventById = async (
     const event = events.find((e) => e.id === eventID);
     if (event) {
       const validatedEvent = EventSchema.parse(event);
-      res.json(validatedEvent);
+      res.json({
+        message: "Event fetched successfully",
+        event: validatedEvent,
+      });
     } else {
-      res.status(404).json({ error: "Event not found" });
+      res.status(404).json({ message: "Event not found" });
     }
   } catch (error) {
-    res.status(500).send((error as Error).message);
+    res.status(500).json({ message: "An unexpected error occurred" });
   }
 };
 
@@ -46,12 +51,17 @@ export const createEvent = async (
     const newEvent = NewEventSchema.parse(req.body);
     const data = await addEvent(newEvent);
     const validatedData = EventSchema.parse(data);
-    res.status(201).json(validatedData);
+    res.status(201).json({
+      message: "Event created successfully",
+      event: validatedData,
+    });
   } catch (error) {
     if (error instanceof Error) {
-      res.status(400).json({ error: error.message });
+      res
+        .status(400)
+        .json({ message: "Invalid request body", error: error.message });
     } else {
-      res.status(500).send("An unexpected error occurred");
+      res.status(500).json({ message: "An unexpected error occurred" });
     }
   }
 };
@@ -72,7 +82,9 @@ export const updateEventById = async (
     }
   } catch (error) {
     if (error instanceof Error) {
-      res.status(400).json({ error: error.message });
+      res
+        .status(400)
+        .json({ message: "Invalid request body", error: error.message });
     } else {
       res.status(500).json({ message: "An unexpected error occurred" });
     }
@@ -86,8 +98,8 @@ export const deleteEventById = async (
   try {
     const { id } = req.params;
     await deleteEvent(id);
-    res.status(204).send();
+    res.status(204).json({ message: "Event deleted successfully" });
   } catch (error) {
-    res.status(500).send((error as Error).message);
+    res.status(500).json({ message: "An unexpected error occurred" });
   }
 };

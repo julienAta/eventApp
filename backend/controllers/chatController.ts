@@ -11,7 +11,8 @@ export const getChatMessages = async (
   try {
     const eventId = req.params.eventId;
     const messages = await chatModel.getChatMessages(eventId);
-    res.json(messages);
+
+    res.json({ message: "Chat messages fetched successfully", messages });
   } catch (error) {
     res
       .status(500)
@@ -24,15 +25,9 @@ export const createChatMessage = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
-  console.log("createChatMessage called");
-  console.log("Request body:", req.body);
-  console.log("Request params:", req.params);
-
   try {
     const eventId = req.params.eventId;
     const { content, user_id } = req.body;
-
-    console.log(`Creating message for event ${eventId} by user ${user_id}`);
 
     const newMessage = await chatModel.addChatMessage({
       event_id: eventId,
@@ -40,9 +35,9 @@ export const createChatMessage = async (
       content,
     });
 
-    console.log("New message created:", newMessage);
-
-    res.status(201).json(newMessage);
+    res
+      .status(201)
+      .json({ message: "Message created successfully", newMessage });
   } catch (error) {
     console.error("Error in createChatMessage:", error);
     res

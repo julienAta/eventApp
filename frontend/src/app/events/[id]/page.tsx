@@ -65,7 +65,7 @@ export default function EventDetailPage({
           getCurrentUser(),
         ]);
 
-        setEvent(eventData);
+        setEvent(eventData.event);
         setCurrentUser(userData);
       } catch (err) {
         console.log("error fetching data", err);

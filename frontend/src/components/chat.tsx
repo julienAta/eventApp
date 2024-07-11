@@ -10,6 +10,10 @@ interface ChatMessage {
   created_at: string;
 }
 
+interface ChatMessageResponse {
+  messages: ChatMessage[];
+}
+
 interface User {
   id: string;
   name: string;
@@ -62,8 +66,8 @@ export function Chat({ eventId, currentUser }: ChatProps) {
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
-      const data: ChatMessage[] = await response.json();
-      setMessages(data);
+      const data: ChatMessageResponse = await response.json();
+      setMessages(data.messages);
     } catch (error) {
       console.error("Error fetching messages:", error);
     }

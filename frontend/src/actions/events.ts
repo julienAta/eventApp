@@ -22,8 +22,8 @@ const fetchEvents = async () => {
 
     const data = await res.json();
 
-    if (Array.isArray(data)) {
-      return data;
+    if (Array.isArray(data.events)) {
+      return data.events;
     } else {
       console.error("Unexpected data format:", data);
       return [];

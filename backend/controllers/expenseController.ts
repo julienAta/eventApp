@@ -38,21 +38,21 @@ export const createExpense = async (
   res: Response
 ): Promise<void> => {
   try {
-    console.log("Received request body:", req.body);
     const newExpense = NewExpenseSchema.parse(req.body);
-    console.log("Parsed new expense:", newExpense);
     const data = await addExpense(newExpense);
-    console.log("Data returned from addExpense:", data);
 
     const validatedData = ExpenseSchema.parse(data);
-    console.log("Validated data:", validatedData);
-    res.status(201).json(validatedData);
+    res.status(201).json({
+      message: "Expense created successfully",
+      expense: validatedData,
+    });
   } catch (error) {
-    console.error("Error in createExpense:", error);
     if (error instanceof Error) {
-      res.status(400).json({ error: error.message });
+      res
+        .status(400)
+        .json({ message: "Invalid request body", error: error.message });
     } else {
-      res.status(500).json({ error: "An unexpected error occurred" });
+      res.status(500).json({ message: "An unexpected error occurred" });
     }
   }
 };
@@ -74,7 +74,9 @@ export const updateExpenseById = async (
     }
   } catch (error) {
     if (error instanceof Error) {
-      res.status(400).json({ error: error.message });
+      res
+        .status(400)
+        .json({ message: "Invalid request body", error: error.message });
     } else {
       res.status(500).json({ message: "An unexpected error occurred" });
     }
@@ -88,8 +90,8 @@ export const deleteExpenseById = async (
   try {
     const { id } = req.params;
     await deleteExpense(id);
-    res.status(204).send();
+    res.status(204).json({ message: "Expense deleted successfully" });
   } catch (error) {
-    res.status(500).send((error as Error).message);
+    res.status(500).json({ message: "An unexpected error occurred" });
   }
 };

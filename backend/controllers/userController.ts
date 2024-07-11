@@ -58,7 +58,6 @@ export const getCurrentUser = async (
       res.status(401).json({ message: "Not authenticated" });
       return;
     }
-    console.log(user, "user");
 
     const userDetails = await userModel.getUserById(user.id);
 
@@ -70,7 +69,6 @@ export const getCurrentUser = async (
     res.json({
       id: userDetails.id,
       name: userDetails.name,
-      // Add any other non-sensitive user properties you want to include
     });
   } catch (error) {
     console.error("Error in getCurrentUser:", error);
@@ -87,7 +85,9 @@ export const createUser = async (
     const newUser = NewUserSchema.parse(req.body);
     const createdUser = await userModel.addUser(newUser);
     const validatedUser = UserSchema.parse(createdUser);
-    res.status(201).json(validatedUser);
+    res
+      .status(201)
+      .json({ message: "User created successfully", user: validatedUser });
   } catch (error) {
     if (error instanceof Error) {
       res.status(400).json({ error: error.message });
@@ -110,7 +110,7 @@ export const updateUser = async (
       const validatedUser = UserSchema.parse(user);
       res.json(validatedUser);
     } else {
-      res.status(404).send("User not found");
+      res.status(404).json({ message: "User not found" });
     }
   } catch (error) {
     if (error instanceof Error) {
@@ -130,9 +130,9 @@ export const deleteUser = async (
   try {
     const success = await userModel.deleteUser(req.params.id);
     if (success) {
-      res.status(204).send();
+      res.status(204).json({ message: "User deleted successfully" });
     } else {
-      res.status(404).send("User not found");
+      res.status(404).json({ message: "User not found" });
     }
   } catch (error) {
     res
