@@ -1,5 +1,5 @@
 "use server";
-const backendUrl = process.env.BACKEND_URL || "http://localhost:3000/api";
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 const fetchEvents = async () => {
   try {
     const res = await fetch(`${backendUrl}/events`, {
