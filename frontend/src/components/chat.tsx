@@ -48,9 +48,9 @@ export function Chat({ eventId, currentUser }: ChatProps) {
     };
   }, [eventId]);
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  // useEffect(() => {
+  //   scrollToBottom();
+  // }, [messages]);
 
   const fetchMessages = async (): Promise<void> => {
     const token = localStorage.getItem("token");
@@ -113,8 +113,10 @@ export function Chat({ eventId, currentUser }: ChatProps) {
   };
 
   return (
-    <div className="flex flex-col h-[500px] w-full max-w-md mx-auto bg-background rounded-lg shadow-lg overflow-hidden">
+    <div className="flex flex-col h-full w-full max-w-md mx-auto bg-background rounded-lg shadow-lg border  overflow-hidden">
       <div className="flex-1 overflow-auto p-4 space-y-4">
+        <h2 className="text-2xl font-bold mb-4">Event Chat</h2>
+
         {messages.map((message) => (
           <div
             key={message.id}

@@ -1,7 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon, LocateIcon } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -34,15 +34,15 @@ export function EventDetail({ event }: { event: any }) {
     }
   };
   return (
-    <Card className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20 mt-20">
+    <Card className=" mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20 ">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100 mb-4">
+          <CardTitle className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100 mb-4">
             {event.title}
-          </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
+          </CardTitle>
+          <CardDescription className="text-lg text-gray-600 dark:text-gray-400 mb-8">
             {event.description}
-          </p>
+          </CardDescription>
           <div className="flex items-center space-x-4 mb-8">
             <div className="flex items-center space-x-2">
               <CalendarIcon className="h-5 w-5 text-gray-500 dark:text-gray-400" />
