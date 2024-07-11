@@ -62,7 +62,7 @@ export function EventDetail({ event }: { event: any }) {
           </Link>
           <Button
             onClick={() => handleDelete()}
-            className="w-full sm:w-auto ml-5"
+            className="w-full sm:w-auto ml-5 mt-5"
           >
             Delete Event
           </Button>
