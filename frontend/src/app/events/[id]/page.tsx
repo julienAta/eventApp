@@ -6,9 +6,7 @@ import { Chat } from "@/components/chat";
 import { Spinner } from "@/components/spinner";
 import ExpenseManager from "@/components/ExpenseManager";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_NEXT_PUBLIC_BACKEND_URL ||
-  "http://localhost:3000/api";
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 async function getCurrentUser() {
   const token = localStorage.getItem("token");
