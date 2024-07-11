@@ -109,7 +109,6 @@ export default function ExpenseManager({
         body: JSON.stringify(editingExpense),
       }
     );
-    console.log(response);
     if (response.ok) {
       fetchExpenses();
       setIsEditDialogOpen(false);

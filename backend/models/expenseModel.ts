@@ -21,7 +21,6 @@ export const getExpensesByEventId = async (
 };
 
 export const addExpense = async (newExpense: NewExpense): Promise<Expense> => {
-  console.log("Adding new expense:", newExpense);
   const { data, error } = await supabase
     .from("expenses")
     .insert({
@@ -43,7 +42,6 @@ export const addExpense = async (newExpense: NewExpense): Promise<Expense> => {
     throw new Error("No data returned from Supabase");
   }
 
-  console.log("Expense added successfully:", data);
   return data as Expense;
 };
 export const updateExpense = async (

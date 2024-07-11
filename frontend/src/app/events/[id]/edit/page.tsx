@@ -9,7 +9,6 @@ export default async function EditEventPage({
 }) {
   const id = parseInt(params.id, 10);
   const event = await fetchEvent(id);
-  console.log(event, "event");
 
   if (!event) {
     return <Spinner />;

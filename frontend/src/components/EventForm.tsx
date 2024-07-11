@@ -35,6 +35,7 @@ const EventForm: FC<EventFormProps> = ({ event, formType }) => {
   const router = useRouter();
   const params = useParams();
   const queryClient = useQueryClient();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const eventData = { title, description, date, location };
@@ -64,12 +65,10 @@ const EventForm: FC<EventFormProps> = ({ event, formType }) => {
           `Event ${formType === "Create" ? "created" : "updated"} successfully!`
         );
 
-        if (formType === "Create") {
-          queryClient.invalidateQueries({
-            queryKey: ["events"],
-          });
-          router.push("/events");
-        }
+        queryClient.invalidateQueries({
+          queryKey: ["events"],
+        });
+        router.push("/events");
       } else {
         throw new Error("Something went wrong");
       }
