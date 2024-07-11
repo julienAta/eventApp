@@ -11,20 +11,22 @@ export function EventList({ events }: { events: any[] }) {
     initialData: events,
     staleTime: 0,
   });
+
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Upcoming Events</h1>
+    <>
       {data.length < 1 ? (
         <p className="text-gray-600">There are no upcoming events.</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {data.map((event, index) => (
             <Link href={`/events/${event.id}`} key={index} passHref>
-              <Card className="bg-white shadow-md rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300">
-                <CardContent className="p-6">
+              <Card className="bg-white shadow-md rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col h-full">
+                <CardContent className="p-6 flex flex-col flex-grow">
                   <h2 className="text-xl font-bold mb-2">{event.title}</h2>
-                  <p className="text-gray-600 mb-4">{event.description}</p>
-                  <div className="flex items-center justify-between">
+                  <p className="text-gray-600 mb-4 flex-grow">
+                    {event.description}
+                  </p>
+                  <div className="flex items-center justify-between mt-auto">
                     <div>
                       <p className="text-sm font-semibold mb-1">Date</p>
                       <p className="text-gray-600">{event.date}</p>
@@ -40,6 +42,6 @@ export function EventList({ events }: { events: any[] }) {
           ))}
         </div>
       )}
-    </div>
+    </>
   );
 }

@@ -11,7 +11,7 @@ export const generateToken = (user: User): string => {
     },
     JWT_SECRET,
     {
-      expiresIn: "1d", // Token expires in 1 day
+      expiresIn: "1d",
     }
   );
 };
