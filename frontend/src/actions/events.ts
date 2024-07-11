@@ -1,8 +1,8 @@
 "use server";
-const backendUrl = process.env.BACKEND_URL || "http://localhost:3000";
+const backendUrl = process.env.BACKEND_URL || "http://localhost:3000/api";
 const fetchEvents = async () => {
   try {
-    const res = await fetch(`${backendUrl}/api/events`, {
+    const res = await fetch(`${backendUrl}/events`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
