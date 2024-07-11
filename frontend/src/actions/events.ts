@@ -34,13 +34,17 @@ const fetchEvents = async () => {
   }
 };
 const fetchEvent = async (id: number) => {
-  const res = await fetch(`${backendUrl}/api/events/${id}`, {
+  const res = await fetch(`${backendUrl}/events/${id}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
     },
   });
   const data = await res.json();
+
+  if (!data) {
+    throw new Error("Failed to fetch event");
+  }
   return data;
 };
 
