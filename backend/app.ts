@@ -15,7 +15,7 @@ app.use(requestLogger);
 
 app.use(
   cors({
-    origin: ["http://localhost:3001", "https://eventapp-2qto.onrender.com"],
+    origin: ["http://localhost:3001", "https://jjx-event-app.vercel.app"],
   })
 );
 
