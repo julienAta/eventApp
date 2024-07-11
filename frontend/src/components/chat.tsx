@@ -114,7 +114,7 @@ export function Chat({ eventId, currentUser }: ChatProps) {
   };
 
   return (
-    <div className="flex flex-col h-full max-h-[61dvh] w-full  mx-auto bg-background rounded-lg shadow-lg border overflow-hidden">
+    <div className="flex flex-col h-full max-h-[61dvh] w-full  mx-auto rounded-lg border overflow-hidden">
       <h2 className="text-2xl font-bold mb-4 pt-5 px-5">Event Chat</h2>
 
       <ScrollArea className="flex-1 p-4 space-y-4">
