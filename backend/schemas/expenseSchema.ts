@@ -2,11 +2,11 @@ import { z } from "zod";
 
 export const ExpenseSchema = z.object({
   id: z.number(),
-  eventId: z.number(),
-  description: z.string().min(1),
+  event_id: z.number(),
+  description: z.string(),
   amount: z.number().positive(),
   date: z.string(),
-  paidBy: z.string(),
+  paid_by: z.string(),
 });
 
 export const NewExpenseSchema = ExpenseSchema.omit({ id: true });

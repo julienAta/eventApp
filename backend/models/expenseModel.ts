@@ -21,15 +21,30 @@ export const getExpensesByEventId = async (
 };
 
 export const addExpense = async (newExpense: NewExpense): Promise<Expense> => {
+  console.log("Adding new expense:", newExpense);
   const { data, error } = await supabase
     .from("expenses")
-    .insert(newExpense)
+    .insert({
+      event_id: newExpense.event_id,
+      description: newExpense.description,
+      amount: newExpense.amount,
+      date: newExpense.date,
+      paid_by: newExpense.paid_by,
+    })
     .single();
 
-  if (error) throw error;
+  if (error) {
+    console.error("Supabase error:", error);
+    throw new Error(`Failed to add expense: ${error.message}`);
+  }
+
+  if (!data) {
+    throw new Error("No data returned from Supabase");
+  }
+
+  console.log("Expense added successfully:", data);
   return data as Expense;
 };
-
 export const updateExpense = async (
   id: string,
   updatedExpense: Partial<NewExpense>

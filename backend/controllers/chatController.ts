@@ -9,7 +9,7 @@ export const getChatMessages = async (
   res: Response
 ): Promise<void> => {
   try {
-    const eventId = req.params.eventId; // Keep as string
+    const eventId = req.params.eventId;
     const messages = await chatModel.getChatMessages(eventId);
     res.json(messages);
   } catch (error) {

@@ -38,19 +38,24 @@ export const createExpense = async (
   res: Response
 ): Promise<void> => {
   try {
+    console.log("Received request body:", req.body);
     const newExpense = NewExpenseSchema.parse(req.body);
+    console.log("Parsed new expense:", newExpense);
     const data = await addExpense(newExpense);
+    console.log("Data returned from addExpense:", data);
+
     const validatedData = ExpenseSchema.parse(data);
+    console.log("Validated data:", validatedData);
     res.status(201).json(validatedData);
   } catch (error) {
+    console.error("Error in createExpense:", error);
     if (error instanceof Error) {
       res.status(400).json({ error: error.message });
     } else {
-      res.status(500).send("An unexpected error occurred");
+      res.status(500).json({ error: "An unexpected error occurred" });
     }
   }
 };
-
 export const updateExpenseById = async (
   req: Request,
   res: Response
