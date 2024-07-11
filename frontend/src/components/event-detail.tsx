@@ -58,13 +58,13 @@ export function EventDetail({ event }: { event: any }) {
             </div>
           </div>
           <Link href={`/events/${event.id}/edit`}>
-            <Button className="w-full sm:w-auto">Update Event Details</Button>
+            <Button className="w-full sm:w-auto">Update Details</Button>
           </Link>
           <Button
             onClick={() => handleDelete()}
             className="w-full sm:w-auto ml-5 mt-5"
           >
-            Delete Event
+            Delete
           </Button>
         </div>
         <div>
