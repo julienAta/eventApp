@@ -7,7 +7,7 @@ import { ScrollArea } from "./ui/scroll-area";
 interface ChatMessage {
   id: string;
   event_id: number;
-  user_id: string;
+  user_id?: string; // Made optional to handle potential missing user_id
   content: string;
   created_at: string;
 }
@@ -30,9 +30,9 @@ export function Chat({ eventId, currentUser }: ChatProps) {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
-    const API_BASE_URL = "http://localhost:3000";
     console.log("Attempting to connect to WebSocket at:", API_BASE_URL);
 
     const newSocket = io(API_BASE_URL, {
@@ -65,6 +65,15 @@ export function Chat({ eventId, currentUser }: ChatProps) {
       setMessages((prevMessages) => [...prevMessages, message]);
     });
 
+    newSocket.on("message_confirmation", (confirmation) => {
+      console.log("Message confirmation received:", confirmation);
+      // You can update the message status in the UI if needed
+    });
+
+    newSocket.on("message_error", (error) => {
+      console.error("Message error:", error);
+    });
+
     newSocket.on("error", (error: string) => {
       console.error("Socket error:", error);
     });
@@ -87,11 +96,13 @@ export function Chat({ eventId, currentUser }: ChatProps) {
         newSocket.off("connect");
         newSocket.off("disconnect");
         newSocket.off("new_message");
+        newSocket.off("message_confirmation");
+        newSocket.off("message_error");
         newSocket.off("error");
         newSocket.disconnect();
       }
     };
-  }, [eventId]); // Dependencies array
+  }, [eventId]);
 
   useEffect(() => {
     fetchMessages();
@@ -102,15 +113,18 @@ export function Chat({ eventId, currentUser }: ChatProps) {
 
     if (!token) {
       console.error("No token found in localStorage");
-      // Handle the absence of a token (e.g., redirect to login)
+
       return;
     }
     try {
-      const response = await fetch(`${API_BASE_URL}/chat/${eventId}/messages`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/api/chat/${eventId}/messages`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -118,7 +132,6 @@ export function Chat({ eventId, currentUser }: ChatProps) {
       setMessages(data.messages);
     } catch (error) {
       console.error("Error fetching messages:", error);
-      // Handle the error (e.g., show an error message to the user)
     }
   };
 
@@ -130,33 +143,41 @@ export function Chat({ eventId, currentUser }: ChatProps) {
 
     if (!socket || !isConnected) {
       console.error("Cannot send message: No active socket connection");
-      // Optionally, show an error to the user
       return;
     }
 
+    const messageToSend = {
+      content: newMessage.trim(),
+      user_id: currentUser.id,
+      event_id: eventId,
+    };
+
+    // Optimistic update
+    const optimisticMessage: ChatMessage = {
+      id: `temp-${Date.now()}`,
+      event_id: eventId,
+      user_id: currentUser.id, // Ensure user_id is always set
+      content: newMessage.trim(),
+      created_at: new Date().toISOString(),
+    };
+    setMessages((prevMessages) => [...prevMessages, optimisticMessage]);
+    setNewMessage("");
+
     try {
-      console.log("Attempting to send message:", newMessage.trim());
-      socket.emit(
-        "chat_message",
-        {
-          content: newMessage.trim(),
-          user_id: currentUser.id,
-          event_id: eventId,
-        },
-        (response: any) => {
-          if (response && response.status === "ok") {
-            console.log("Message sent successfully");
-            setNewMessage("");
-          } else {
-            console.error("Failed to send message:", response);
-            // Optionally, show an error to the user
-          }
-        }
-      );
+      console.log("Attempting to send message:", messageToSend);
+      socket.emit("chat_message", messageToSend);
     } catch (error) {
       console.error("Error sending message:", error);
-      // Optionally, show an error to the user
+
+      // Remove the optimistic message
+      setMessages((prevMessages) =>
+        prevMessages.filter((msg) => msg.id !== optimisticMessage.id)
+      );
     }
+  };
+
+  const isCurrentUserMessage = (message: ChatMessage): boolean => {
+    return message.user_id !== undefined && message.user_id === currentUser.id;
   };
 
   const formatTime = (dateString: string): string => {
@@ -173,16 +194,16 @@ export function Chat({ eventId, currentUser }: ChatProps) {
           <div
             key={message.id}
             className={`flex flex-col ${
-              message.user_id === currentUser.id ? "items-end" : "items-start"
+              isCurrentUserMessage(message) ? "items-end" : "items-start"
             } space-y-2`}
           >
             <div
               className={`${
-                message.user_id === currentUser.id
+                isCurrentUserMessage(message)
                   ? "bg-primary text-primary-foreground"
                   : "bg-muted text-muted-foreground"
               } px-4 py-2 rounded-lg ${
-                message.user_id === currentUser.id
+                isCurrentUserMessage(message)
                   ? "rounded-br-none"
                   : "rounded-bl-none"
               } max-w-[75%]`}

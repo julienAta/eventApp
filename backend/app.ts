@@ -65,7 +65,6 @@ app.use(
 app.use("/api", router);
 
 io.use(socketAuth);
-
 io.on("connection", (socket) => {
   console.log("New socket connection:", socket.id);
 
@@ -74,15 +73,39 @@ io.on("connection", (socket) => {
     socket.join(roomId);
   });
 
-  socket.on("chat_message", (message) => {
+  socket.on("chat_message", async (message) => {
     console.log("Received chat message:", message);
-    io.to(message.event_id.toString()).emit("new_message", message);
+    try {
+      // Validate the message (you may want to add more validation)
+      if (!message.content || !message.user_id || !message.event_id) {
+        throw new Error("Invalid message format");
+      }
+
+      // Store the message in Supabase
+      const storedMessage = await chatModel.addChatMessage(message);
+
+      // Broadcast the stored message to all clients in the room
+      io.to(message.event_id.toString()).emit("new_message", storedMessage);
+
+      // Send a confirmation to the sender
+      socket.emit("message_confirmation", {
+        status: "ok",
+        id: storedMessage.id,
+      });
+    } catch (error) {
+      logger.error("Error processing chat message", { error, message });
+      socket.emit("message_error", {
+        status: "error",
+        message: "Failed to process message",
+      });
+    }
   });
 
   socket.on("disconnect", (reason) => {
     console.log("Socket disconnected:", socket.id, "Reason:", reason);
   });
 });
+
 server.listen(port, () => {
   logger.info(`Server is running on port ${port}`);
 });

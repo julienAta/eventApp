@@ -17,38 +17,49 @@ export const socketAuth = (socket: Socket, next: (err?: Error) => void) => {
     return next(new Error("Authentication token is missing"));
   }
 
+  const jwtSecret = process.env.JWT_SECRET;
+
+  if (!jwtSecret) {
+    logger.error("JWT_SECRET is not set in environment variables");
+    return next(new Error("Server configuration error"));
+  }
+
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
+    const decoded = jwt.verify(token, jwtSecret) as UserJwtPayload;
 
-    // Type narrowing
-    if (typeof decoded === "string") {
-      throw new Error("Unexpected token format");
+    if (!decoded || typeof decoded === "string") {
+      throw new Error("Invalid token format");
     }
 
-    // Check if the decoded token has the expected structure
     if (!("id" in decoded)) {
-      throw new Error("Invalid token structure");
+      throw new Error("Invalid token structure: missing 'id' field");
     }
 
-    const userPayload = decoded as UserJwtPayload;
-
-    socket.data.user = userPayload;
+    socket.data.user = decoded;
     logger.info("Socket authenticated", {
       socketId: socket.id,
-      userId: userPayload.id,
+      userId: decoded.id,
     });
     next();
   } catch (error) {
-    logger.error("Socket authentication failed", {
-      error,
-      socketId: socket.id,
-    });
-    if (error instanceof jwt.TokenExpiredError) {
+    if (error instanceof jwt.JsonWebTokenError) {
+      logger.error("JWT verification failed", {
+        error: error.message,
+        socketId: socket.id,
+      });
+      return next(new Error("Invalid authentication token"));
+    } else if (error instanceof jwt.TokenExpiredError) {
+      logger.error("Token expired", {
+        error: error.message,
+        socketId: socket.id,
+      });
       return next(new Error("Authentication token has expired"));
+    } else {
+      logger.error("Unexpected error during socket authentication", {
+        error,
+        socketId: socket.id,
+      });
+      return next(new Error("Authentication failed"));
     }
-    if (error instanceof Error) {
-      return next(error);
-    }
-    next(new Error("Invalid authentication token"));
   }
 };
