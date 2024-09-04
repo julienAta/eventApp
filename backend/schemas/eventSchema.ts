@@ -6,6 +6,7 @@ export const EventSchema = z.object({
   date: z.string(),
   description: z.string().optional(),
   location: z.string(),
+  image_url: z.string().optional(),
 });
 
 export const NewEventSchema = EventSchema.omit({ id: true });

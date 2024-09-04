@@ -11,6 +11,8 @@ export function EventDetail({ event }: { event: any }) {
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
   const router = useRouter();
   const queryClient = useQueryClient();
+  console.log(event, "event");
+
   const handleDelete = async () => {
     try {
       const response = await fetch(`${BACKEND_URL}/events/${event.id}`, {
@@ -32,7 +34,7 @@ export function EventDetail({ event }: { event: any }) {
     }
   };
   return (
-    <Card className=" mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20 ">
+    <Card className="mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
           <CardTitle className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100 mb-4">
@@ -70,7 +72,7 @@ export function EventDetail({ event }: { event: any }) {
             alt="Event Image"
             className="rounded-lg object-cover w-full h-full"
             height="400"
-            src="/placeholder.svg"
+            src={event.image_url || "/placeholder.svg"}
             style={{
               aspectRatio: "600/400",
               objectFit: "cover",
