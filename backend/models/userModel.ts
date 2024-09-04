@@ -1,7 +1,8 @@
 import { User, NewUser, UpdateUser } from "../types/userTypes.js";
 import * as argon2 from "argon2";
 import { supabase } from "../supabase/supabaseClient.js";
-import { logger } from "../app.js";
+import { logger } from "../utils/logger";
+
 export const addUser = async (user: NewUser): Promise<User> => {
   const hashedPassword = await argon2.hash(user.password);
   const { data, error } = await supabase

@@ -1,5 +1,5 @@
 import { supabase } from "../supabase/supabaseClient.js";
-import { logger } from "../app.js";
+import { logger } from "../utils/logger.js";
 
 interface ChatMessage {
   id: string;

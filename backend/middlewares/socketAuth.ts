@@ -1,10 +1,8 @@
 import { Socket } from "socket.io";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { logger } from "../app.js";
-
+import { logger } from "../utils/logger";
 interface UserJwtPayload extends JwtPayload {
   id: string;
-  // Add any other properties you expect in your JWT payload
 }
 
 export const socketAuth = (socket: Socket, next: (err?: Error) => void) => {

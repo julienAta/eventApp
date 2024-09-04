@@ -6,8 +6,7 @@ import {
   deleteEvent,
 } from "../models/eventModel.js";
 import { EventSchema, NewEventSchema } from "../schemas/eventSchema.js";
-import { logger } from "../app.js"; // Import the logger
-import { log } from "winston";
+import { logger } from "../utils/logger";
 
 export const getAllEvents = async (
   req: Request,

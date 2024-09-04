@@ -7,7 +7,7 @@ import {
   deleteExpense,
 } from "../models/expenseModel.js";
 import { ExpenseSchema, NewExpenseSchema } from "../schemas/expenseSchema.js";
-import { logger } from "../app.js"; // Import the logger
+import { logger } from "../utils/logger";
 
 export const getAllExpenses = async (
   req: Request,

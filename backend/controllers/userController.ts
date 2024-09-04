@@ -10,7 +10,8 @@ import {
   NewUserSchema,
   UpdateUserSchema,
 } from "../schemas/userSchema.js";
-import { logger } from "../app.js"; // Import the logger
+import { logger } from "../utils/logger";
+
 import { supabase } from "../supabase/supabaseClient.js";
 interface AuthenticatedRequest extends Request {
   user?: {
