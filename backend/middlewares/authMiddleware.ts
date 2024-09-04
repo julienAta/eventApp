@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { verifyToken } from "../utils/jwtUtils.js";
+import { verifyAccessToken } from "../utils/jwtUtils.js";
 import { z } from "zod";
 
 const TokenPayloadSchema = z.object({
@@ -18,7 +18,7 @@ export const authenticateJWT = (
     const token = authHeader.split(" ")[1];
 
     try {
-      const decoded = verifyToken(token);
+      const decoded = verifyAccessToken(token);
       const user = TokenPayloadSchema.parse(decoded);
       (req as any).user = user;
       next();

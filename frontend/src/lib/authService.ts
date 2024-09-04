@@ -1,4 +1,3 @@
-// authService.ts
 const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 export async function signIn(email: string, password: string) {
@@ -14,7 +13,10 @@ export async function signIn(email: string, password: string) {
     throw new Error("Failed to sign in");
   }
 
-  return response.json();
+  const data = await response.json();
+  localStorage.setItem("accessToken", data.accessToken);
+  localStorage.setItem("refreshToken", data.refreshToken);
+  return data;
 }
 
 export async function signUp(name: string, email: string, password: string) {
@@ -35,7 +37,74 @@ export async function signUp(name: string, email: string, password: string) {
 
 export function isAuthenticated(): boolean {
   if (typeof window !== "undefined") {
-    return !!localStorage.getItem("token");
+    return !!localStorage.getItem("accessToken");
   }
   return false;
+}
+
+export async function refreshToken() {
+  const refreshToken = localStorage.getItem("refreshToken");
+  if (!refreshToken) {
+    throw new Error("No refresh token available");
+  }
+
+  const response = await fetch(`${API_URL}/users/refresh-token`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ refreshToken }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to refresh token");
+  }
+
+  const data = await response.json();
+  localStorage.setItem("accessToken", data.accessToken);
+  localStorage.setItem("refreshToken", data.refreshToken);
+  return data;
+}
+
+export function logout() {
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("refreshToken");
+}
+
+export async function fetchWithToken(url: string, options: RequestInit = {}) {
+  let accessToken = localStorage.getItem("accessToken");
+
+  if (!accessToken) {
+    throw new Error("No access token available");
+  }
+
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      ...options.headers,
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (response.status === 401) {
+    // Token has expired, try to refresh it
+    try {
+      await refreshToken();
+      accessToken = localStorage.getItem("accessToken");
+      // Retry the original request with the new token
+      return fetch(url, {
+        ...options,
+        headers: {
+          ...options.headers,
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+    } catch (error) {
+      // If refresh token fails, log out the user
+      logout();
+      throw new Error("Session expired. Please log in again.");
+    }
+  }
+
+  return response;
 }

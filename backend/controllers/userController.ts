@@ -1,14 +1,17 @@
 import { Request, Response } from "express";
 import * as userModel from "../models/userModel.js";
 import * as argon2 from "argon2";
-import { generateToken } from "../utils/jwtUtils.js";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+} from "../utils/jwtUtils.js";
 import {
   UserSchema,
   NewUserSchema,
   UpdateUserSchema,
 } from "../schemas/userSchema.js";
 import { logger } from "../app.js"; // Import the logger
-
+import { supabase } from "../supabase/supabaseClient.js";
 interface AuthenticatedRequest extends Request {
   user?: {
     id: string;
@@ -172,37 +175,113 @@ export const deleteUser = async (
       .json({ message: "An error occurred while deleting the user" });
   }
 };
+export const verifyUserExists = async (userId: string): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase
+      .from("users")
+      .select("id")
+      .eq("id", userId)
+      .single();
+
+    if (error) {
+      logger.error("Error verifying user existence:", {
+        errorObject: error,
+        errorMessage: error.message,
+        userId: userId,
+      });
+      return false;
+    }
+
+    return !!data;
+  } catch (error) {
+    logger.error("Unexpected error in verifyUserExists:", {
+      error: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : "No stack trace",
+      userId: userId,
+    });
+    return false;
+  }
+};
 
 export const loginUser = async (req: Request, res: Response): Promise<void> => {
   const loginSchema = NewUserSchema.pick({ email: true, password: true });
   try {
     const { email, password } = loginSchema.parse(req.body);
+    logger.info(`Login attempt for email: ${email}`);
+
     const user = await userModel.findUserByEmail(email);
 
     if (!user) {
-      logger.warn("Login attempt with invalid email", { email });
+      logger.warn(`Login attempt with invalid email: ${email}`);
       res.status(401).json({ message: "Invalid email or password" });
       return;
     }
+
+    logger.info(`User found for email: ${email}`);
 
     const isPasswordValid = await argon2.verify(user.password, password);
 
     if (!isPasswordValid) {
-      logger.warn("Login attempt with invalid password", { email });
+      logger.warn(`Login attempt with invalid password for email: ${email}`);
       res.status(401).json({ message: "Invalid email or password" });
       return;
     }
 
-    const token = generateToken(user);
-    logger.info("User logged in successfully", { userId: user.id });
-    res.json({ token });
+    logger.info(`Password verified for user: ${user.id}`);
+
+    const userExists = await verifyUserExists(user.id);
+    if (!userExists) {
+      logger.error(`User not found in database: ${user.id}`);
+      res.status(401).json({ message: "Invalid user" });
+      return;
+    }
+
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+
+    logger.info(`Tokens generated for user: ${user.id}`);
+
+    try {
+      await userModel.saveRefreshToken(user.id, refreshToken);
+    } catch (saveError) {
+      logger.error(`Error saving refresh token:`, {
+        error: saveError instanceof Error ? saveError.message : "Unknown error",
+        stack: saveError instanceof Error ? saveError.stack : "No stack trace",
+        userId: user.id,
+      });
+      res.status(500).json({ message: "Error during login process" });
+      return;
+    }
+
+    logger.info(`User logged in successfully: ${user.id}`);
+    res.json({
+      message: "Login successful",
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      },
+      accessToken,
+      refreshToken,
+    });
   } catch (error) {
     if (error instanceof Error) {
-      logger.warn("Invalid input for login", { error: error.message });
-      res.status(400).json({ error: error.message });
+      logger.error(`Login error:`, {
+        error: error.message,
+        stack: error.stack,
+      });
+      if (error.message.includes("parse")) {
+        res.status(400).json({ message: "Invalid input data" });
+      } else {
+        res
+          .status(500)
+          .json({ message: "An unexpected error occurred during login" });
+      }
     } else {
-      logger.error("Error occurred during login", { error });
-      res.status(500).json({ message: "An error occurred during login" });
+      logger.error(`Unknown login error:`, { error });
+      res
+        .status(500)
+        .json({ message: "An unexpected error occurred during login" });
     }
   }
 };

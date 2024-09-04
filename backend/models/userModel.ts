@@ -1,7 +1,7 @@
 import { User, NewUser, UpdateUser } from "../types/userTypes.js";
 import * as argon2 from "argon2";
 import { supabase } from "../supabase/supabaseClient.js";
-
+import { logger } from "../app.js";
 export const addUser = async (user: NewUser): Promise<User> => {
   const hashedPassword = await argon2.hash(user.password);
   const { data, error } = await supabase
@@ -66,4 +66,88 @@ export const getUserById = async (id: string): Promise<User | null> => {
 
   if (error) throw error;
   return data as User | null;
+};
+
+export const saveRefreshToken = async (
+  userId: string,
+  refreshToken: string
+): Promise<void> => {
+  try {
+    logger.info(`Attempting to save refresh token for user: ${userId}`);
+
+    // Calculate expiration date (e.g., 7 days from now)
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7);
+
+    const { data, error } = await supabase.from("user_refresh_tokens").insert({
+      user_id: userId,
+      refresh_token: refreshToken,
+      expires_at: expiresAt.toISOString(),
+    });
+
+    if (error) {
+      logger.error("Error inserting refresh token:", {
+        errorObject: error,
+        errorMessage: error.message,
+        errorDetails: error.details,
+        hint: error.hint,
+        code: error.code,
+        userId: userId,
+      });
+      throw new Error(
+        `Failed to save refresh token: ${error.message || "Unknown error"}`
+      );
+    }
+
+    logger.info(`Successfully saved refresh token for user: ${userId}`);
+  } catch (error) {
+    logger.error("Unexpected error in saveRefreshToken:", {
+      error: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : "No stack trace",
+      userId: userId,
+    });
+    throw error;
+  }
+};
+
+export const validateRefreshToken = async (
+  userId: string,
+  refreshToken: string
+): Promise<boolean> => {
+  const { data, error } = await supabase
+    .from("user_refresh_tokens")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("refresh_token", refreshToken)
+    .single();
+
+  if (error) return false;
+  return !!data;
+};
+
+export const replaceRefreshToken = async (
+  userId: string,
+  oldRefreshToken: string,
+  newRefreshToken: string
+): Promise<void> => {
+  const { error } = await supabase
+    .from("user_refresh_tokens")
+    .update({ refresh_token: newRefreshToken })
+    .eq("user_id", userId)
+    .eq("refresh_token", oldRefreshToken);
+
+  if (error) throw error;
+};
+
+export const deleteRefreshToken = async (
+  userId: string,
+  refreshToken: string
+): Promise<void> => {
+  const { error } = await supabase
+    .from("user_refresh_tokens")
+    .delete()
+    .eq("user_id", userId)
+    .eq("refresh_token", refreshToken);
+
+  if (error) throw error;
 };
