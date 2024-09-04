@@ -1,15 +1,9 @@
-import { Router } from "express";
-import {
-  getChatMessages,
-  createChatMessage,
-  streamChatMessages,
-} from "../controllers/chatController.js";
+import express from "express";
+import { getChatMessages } from "../controllers/chatController.js";
 import { authenticateJWT } from "../middlewares/authMiddleware.js";
 
-const router = Router();
-router.get("/:eventId/stream", streamChatMessages);
-router.use(authenticateJWT);
-router.get("/:eventId/messages", getChatMessages);
-router.post("/:eventId/messages", createChatMessage);
+const router = express.Router();
+
+router.get("/:eventId/messages", authenticateJWT, getChatMessages);
 
 export default router;
