@@ -5,8 +5,8 @@
   "type": "module",
   "main": "app.ts",
   "scripts": {
-    "start": "node --loader ts-node/esm app.ts",
-    "dev": "nodemon",
+    "start": "npx tsx app.ts",
+    "dev": " npx tsx app.ts",
     "build": "tsc"
   },
   "keywords": [],
