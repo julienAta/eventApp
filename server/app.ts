@@ -37,7 +37,6 @@ router.post("/upload", upload.single("file"), async (req, res) => {
   );
 
   try {
-    // Upload file to Supabase Storage
     logger.info("Attempting to upload file to Supabase Storage");
     const { data, error } = await supabase.storage
       .from("event-images")
@@ -56,7 +55,6 @@ router.post("/upload", upload.single("file"), async (req, res) => {
 
     logger.info("File uploaded successfully, getting public URL");
 
-    // Get public URL of the uploaded file
     const { data: publicUrlData } = supabase.storage
       .from("event-images")
       .getPublicUrl(fileName);
@@ -64,7 +62,6 @@ router.post("/upload", upload.single("file"), async (req, res) => {
     const imageUrl = publicUrlData.publicUrl;
     logger.info(`Public URL obtained: ${imageUrl}`);
 
-    // Update the events table with the new image URL
     if (eventId) {
       logger.info(`Updating events table for eventId: ${eventId}`);
       const { data: eventData, error: eventError } = await supabase
@@ -112,6 +109,7 @@ router.post("/upload", upload.single("file"), async (req, res) => {
       .json({ error: "Error in upload process", details: error.message });
   }
 });
+
 server.listen(port, () => {
   logger.log({ level: "info", message: `Server is running on port ${port}` });
 });
