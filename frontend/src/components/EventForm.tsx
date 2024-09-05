@@ -105,29 +105,33 @@ const EventForm: FC<EventFormProps> = ({ event, formType }) => {
   };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const formData = new FormData();
-    formData.append("title", title);
-    formData.append("description", description);
-    formData.append("date", date);
-    formData.append("location", location);
-    if (uploadedImageUrl) {
-      formData.append("image_url", uploadedImageUrl);
-    }
+    const eventData = {
+      title,
+      description,
+      date,
+      location,
+      image_url: uploadedImageUrl,
+    };
 
     try {
       let response;
       if (formType === "Create") {
         response = await fetch(`${BACKEND_URL}/events`, {
           method: "POST",
-          body: formData,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(eventData), // Sending a single object
         });
       } else {
         response = await fetch(`${BACKEND_URL}/events/${params.id}`, {
           method: "PUT",
-          body: formData,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(eventData),
         });
       }
-
       if (response.ok) {
         toast(
           `Event ${formType === "Create" ? "created" : "updated"} successfully!`

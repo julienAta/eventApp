@@ -8,8 +8,9 @@
     "outDir": "./dist",
     "rootDir": ".",
     "allowJs": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "types": ["jest", "node"] // Add this line
   },
   "include": ["./**/*"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "**/*.test.ts"] // Update this line
 }

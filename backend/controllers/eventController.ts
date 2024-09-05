@@ -57,32 +57,63 @@ export const createEvent = async (
   req: Request,
   res: Response
 ): Promise<void> => {
+  logger.info("Attempting to create a new event");
+
   try {
-    const newEvent = NewEventSchema.parse(req.body);
-    const data = await addEvent(newEvent);
-    const validatedData = EventSchema.parse(data);
-    logger.info("Event created successfully", { eventId: validatedData.id });
+    logger.debug("Received create event request", {
+      headers: req.headers,
+      body: req.body,
+    });
+
+    const validatedData = NewEventSchema.parse(req.body);
+    logger.info("Event data validated successfully");
+
+    const createdEvent = await addEvent(validatedData);
+    logger.info("Event added to database successfully", {
+      eventId: createdEvent.id,
+    });
+
+    const validatedEvent = EventSchema.parse(createdEvent);
+    logger.info("Created event data validated successfully");
+
     res.status(201).json({
       message: "Event created successfully",
-      event: validatedData,
+      event: validatedEvent,
     });
-  } catch (error) {
-    if (error instanceof Error) {
-      logger.warn("Invalid request body for event creation", {
-        error: error.message,
+    logger.info("Create event response sent successfully");
+  } catch (error: any) {
+    logger.error("Error occurred while creating event", { error });
+
+    if (error.name === "ZodError") {
+      const validationErrors = error.errors.map((e: any) => ({
+        field: e.path.join("."),
+        message: e.message,
+      }));
+      logger.warn("Validation failed for event creation", { validationErrors });
+      res.status(400).json({
+        message: "Invalid event data",
+        errors: validationErrors,
       });
-      res
-        .status(400)
-        .json({ message: "Invalid request body", error: error.message });
+    } else if (error.code === "23505") {
+      logger.warn("Attempted to create duplicate event", {
+        error: error.detail,
+      });
+      res.status(409).json({
+        message: "An event with this title already exists",
+        error: error.detail,
+      });
     } else {
-      logger.error("Unexpected error occurred during event creation", {
-        error,
+      logger.error("Unexpected error during event creation", { error });
+      res.status(500).json({
+        message: "An unexpected error occurred while creating the event",
+        error:
+          process.env.NODE_ENV === "production"
+            ? "Internal server error"
+            : error.message,
       });
-      res.status(500).json({ message: "An unexpected error occurred" });
     }
   }
 };
-
 export const updateEventById = async (
   req: Request,
   res: Response

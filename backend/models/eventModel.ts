@@ -18,17 +18,17 @@ export const getEvents = async (): Promise<Event[]> => {
   return eventsWithExpenses;
 };
 
-export const addEvent = async (event: NewEvent): Promise<Event[]> => {
+export const addEvent = async (event: NewEvent): Promise<Event> => {
   const { data, error } = await supabase
     .from("events")
-    .insert([event])
-    .select();
+    .insert(event) // Changed from [event] to event
+    .select()
+    .single(); // Added .single() to return a single object
   if (error) {
     throw new Error(error.message);
   }
-  return data || [];
+  return data; // This will now return a single Event object, not an array
 };
-
 export const updateEvent = async (
   id: string,
   updatedEvent: Partial<Event>
