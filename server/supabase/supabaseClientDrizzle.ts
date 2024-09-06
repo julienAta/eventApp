@@ -1,5 +1,7 @@
 import dotenv from "dotenv";
 import { createClient } from "@supabase/supabase-js";
+import { PostgresJsDatabase, drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 
 dotenv.config();
 
@@ -11,3 +13,8 @@ if (!supabaseUrl || !supabaseKey) {
 }
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Expose the raw connection for Drizzle
+const connectionString = `${supabaseUrl}?apikey=${supabaseKey}`;
+export const queryClient = postgres(connectionString);
+export const db: PostgresJsDatabase = drizzle(queryClient);

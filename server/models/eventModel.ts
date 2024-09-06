@@ -1,21 +1,32 @@
-import { log } from "winston";
+import { drizzle } from "drizzle-orm/postgres-js";
 import { supabase } from "../supabase/supabaseClient.js";
 import { Event, NewEvent } from "../types/eventTypes.js";
 import { getExpensesByEventId } from "./expenseModel.js";
-
+import { events } from "../db/schema.js";
+import postgres from "postgres";
+const client = postgres(process.env.SUPABASE_URL!);
+const db = drizzle(client);
 export const getEvents = async (): Promise<Event[]> => {
-  const { data, error } = await supabase.from("events").select("*");
+  try {
+    const eventsData = await db.select().from(events);
 
-  if (error) {
-    throw new Error(error.message);
+    const eventsWithExpenses = await Promise.all(
+      eventsData.map(async (event) => {
+        const expenses = await getExpensesByEventId(event.id);
+        return {
+          ...event,
+          expenses: expenses.map((e) => e.id),
+          description: event.description || null,
+          title: event.name,
+        };
+      })
+    );
+
+    return eventsWithExpenses;
+  } catch (error) {
+    console.error("Error fetching events:", error);
+    throw new Error("Failed to fetch events");
   }
-  const eventsWithExpenses = await Promise.all(
-    data.map(async (event) => {
-      const expenses = await getExpensesByEventId(event.id);
-      return { ...event, expenses: expenses.map((e) => e.id) };
-    })
-  );
-  return eventsWithExpenses;
 };
 
 export const addEvent = async (event: NewEvent): Promise<Event> => {

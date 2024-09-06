@@ -1,8 +1,11 @@
-export interface Event {
+export type Event = {
   id: number;
-  title: string;
-  date: string;
-  description?: string;
-}
+  name: string;
+  date: Date;
+  location: string;
+  description: string | null;
+  title: string; // This is causing the issue
+  expenses: number[];
+};
 
-export interface NewEvent extends Omit<Event, "id"> {}
+export type NewEvent = Omit<Event, "id" | "expenses">;
