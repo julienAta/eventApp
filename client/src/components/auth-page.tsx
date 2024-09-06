@@ -20,7 +20,8 @@ export function AuthPage() {
     setError("");
     try {
       const data = await signIn(email, password);
-      localStorage.setItem("token", data.token);
+      localStorage.setItem("accessToken", data.accessToken);
+      localStorage.setItem("refreshToken", data.refreshToken);
       window.location.replace("/");
     } catch (err) {
       setError("Failed to sign in. Please check your credentials.");
@@ -33,7 +34,8 @@ export function AuthPage() {
     try {
       await signUp(name, email, password);
       const data = await signIn(email, password);
-      localStorage.setItem("token", data.token);
+      localStorage.setItem("accessToken", data.accessToken);
+      localStorage.setItem("refreshToken", data.refreshToken);
       window.location.replace("/");
     } catch (err) {
       setError("Failed to sign up. Please try again.");

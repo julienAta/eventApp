@@ -152,3 +152,42 @@ export const deleteRefreshToken = async (
 
   if (error) throw error;
 };
+
+export const getUserByRefreshToken = async (
+  refreshToken: string
+): Promise<User | null> => {
+  try {
+    logger.info("Attempting to get user by refresh token");
+
+    const { data, error } = await supabase
+      .from("user_refresh_tokens")
+      .select("user_id, users:user_id(*)")
+      .eq("refresh_token", refreshToken)
+      .single();
+
+    if (error) {
+      logger.error("Error fetching user by refresh token:", {
+        errorObject: error,
+        errorMessage: error.message,
+        errorDetails: error.details,
+        hint: error.hint,
+        code: error.code,
+      });
+      return null;
+    }
+
+    if (!data) {
+      logger.warn("No user found for the provided refresh token");
+      return null;
+    }
+
+    logger.info("Successfully retrieved user by refresh token");
+    return data.users as any;
+  } catch (error) {
+    logger.error("Unexpected error in getUserByRefreshToken:", {
+      error: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : "No stack trace",
+    });
+    throw error;
+  }
+};

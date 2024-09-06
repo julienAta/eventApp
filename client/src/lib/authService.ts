@@ -78,17 +78,17 @@ export async function fetchWithToken(url: string, options: RequestInit = {}) {
     throw new Error("No access token available");
   }
 
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      ...options.headers,
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        ...options.headers,
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
 
-  if (response.status === 401) {
-    // Token has expired, try to refresh it
-    try {
+    if (response.status === 401) {
+      // Token has expired, try to refresh it
       await refreshToken();
       accessToken = localStorage.getItem("accessToken");
       // Retry the original request with the new token
@@ -99,12 +99,14 @@ export async function fetchWithToken(url: string, options: RequestInit = {}) {
           Authorization: `Bearer ${accessToken}`,
         },
       });
-    } catch (error) {
-      // If refresh token fails, log out the user
+    }
+
+    return response;
+  } catch (error) {
+    if (error instanceof Error && error.message === "Failed to refresh token") {
       logout();
       throw new Error("Session expired. Please log in again.");
     }
+    throw error;
   }
-
-  return response;
 }

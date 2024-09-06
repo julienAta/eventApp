@@ -286,3 +286,57 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     }
   }
 };
+
+export const refreshUserToken = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      logger.warn("Refresh token missing in request");
+      res.status(400).json({ message: "Refresh token is required" });
+      return;
+    }
+
+    const user = await userModel.getUserByRefreshToken(refreshToken);
+
+    if (!user) {
+      logger.warn("Invalid refresh token used", { refreshToken });
+      res.status(401).json({ message: "Invalid refresh token" });
+      return;
+    }
+
+    const newAccessToken = generateAccessToken(user);
+    const newRefreshToken = generateRefreshToken(user);
+
+    logger.info(`New tokens generated for user: ${user.id}`);
+
+    try {
+      await userModel.replaceRefreshToken(
+        user.id,
+        refreshToken,
+        newRefreshToken
+      );
+    } catch (saveError) {
+      logger.error(`Error replacing refresh token:`, {
+        error: saveError instanceof Error ? saveError.message : "Unknown error",
+        stack: saveError instanceof Error ? saveError.stack : "No stack trace",
+        userId: user.id,
+      });
+      res.status(500).json({ message: "Error during token refresh process" });
+      return;
+    }
+
+    res.json({
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken,
+    });
+  } catch (error) {
+    logger.error("Error in refreshUserToken:", error);
+    res
+      .status(500)
+      .json({ message: "An error occurred while refreshing the token" });
+  }
+};

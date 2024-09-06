@@ -4,21 +4,30 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { isAuthenticated, logout } from "@/lib/authService";
 
 export function Navbar() {
   const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    setIsLoggedIn(!!token);
+    const checkAuthStatus = () => {
+      setIsLoggedIn(isAuthenticated());
+    };
+
+    checkAuthStatus();
+    // Add event listener for storage changes
+    window.addEventListener("storage", checkAuthStatus);
+
+    return () => {
+      window.removeEventListener("storage", checkAuthStatus);
+    };
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    logout();
     setIsLoggedIn(false);
     router.push("/auth");
-    router.refresh();
   };
 
   return (

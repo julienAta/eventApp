@@ -7,6 +7,7 @@ import {
   deleteUser,
   loginUser,
   getCurrentUser,
+  refreshUserToken,
 } from "../controllers/userController.js";
 import { authenticateJWT } from "../middlewares/authMiddleware.js";
 
@@ -22,5 +23,6 @@ router.get("/", getAllUsers);
 router.get("/:id", getUserById);
 router.put("/:id", updateUser);
 router.delete("/:id", deleteUser);
+router.post("/refresh-token", refreshUserToken);
 
 export default router;
