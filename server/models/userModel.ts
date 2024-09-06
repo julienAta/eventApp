@@ -76,7 +76,6 @@ export const saveRefreshToken = async (
   try {
     logger.info(`Attempting to save refresh token for user: ${userId}`);
 
-    // Calculate expiration date (e.g., 7 days from now)
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);
 

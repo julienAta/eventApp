@@ -29,6 +29,7 @@ export const addEvent = async (event: NewEvent): Promise<Event> => {
   }
   return data; // This will now return a single Event object, not an array
 };
+
 export const updateEvent = async (
   id: string,
   updatedEvent: Partial<Event>
