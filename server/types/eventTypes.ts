@@ -3,6 +3,7 @@ export interface Event {
   title: string;
   date: string;
   description?: string;
+  creator_id: string;
 }
 
 export interface NewEvent extends Omit<Event, "id"> {}

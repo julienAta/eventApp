@@ -1,5 +1,5 @@
 "use client";
-import { FC, useState, useRef } from "react";
+import { FC, useState, useRef, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   CardTitle,
@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { set } from "zod";
 
 interface EventFormProps {
   event?: {
@@ -33,6 +34,7 @@ interface EventFormProps {
 
 const EventForm: FC<EventFormProps> = ({ event, formType }) => {
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+  const [user, setUser] = useState<any>(null);
   const [title, setTitle] = useState(event?.title || "");
   const [description, setDescription] = useState(event?.description || "");
   const [date, setDate] = useState(event?.date || "");
@@ -111,6 +113,7 @@ const EventForm: FC<EventFormProps> = ({ event, formType }) => {
       date,
       location,
       image_url: uploadedImageUrl,
+      creator_id: user.id,
     };
 
     try {
@@ -151,6 +154,32 @@ const EventForm: FC<EventFormProps> = ({ event, formType }) => {
       );
     }
   };
+
+  useEffect(() => {
+    async function fetchUser() {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          return;
+        }
+
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/users/me`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        const userData = await response.json();
+        console.log("User data:", userData);
+
+        setUser(userData);
+      } catch (error) {
+        console.error("Error fetching user events:", error);
+      }
+    }
+
+    fetchUser();
+  }, []);
 
   return (
     <div className="container mx-auto max-w-2xl py-8">

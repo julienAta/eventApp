@@ -21,13 +21,13 @@ export const getEvents = async (): Promise<Event[]> => {
 export const addEvent = async (event: NewEvent): Promise<Event> => {
   const { data, error } = await supabase
     .from("events")
-    .insert(event) // Changed from [event] to event
+    .insert(event)
     .select()
-    .single(); // Added .single() to return a single object
+    .single();
   if (error) {
     throw new Error(error.message);
   }
-  return data; // This will now return a single Event object, not an array
+  return data;
 };
 
 export const updateEvent = async (

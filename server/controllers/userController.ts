@@ -85,6 +85,7 @@ export const getCurrentUser = async (
     res.json({
       id: userDetails.id,
       name: userDetails.name,
+      role: userDetails.role,
     });
   } catch (error) {
     logger.error("Error in getCurrentUser", { error });

@@ -9,10 +9,32 @@ import { isAuthenticated, logout } from "@/lib/authService";
 export function Navbar() {
   const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    const checkAuthStatus = () => {
+    const checkAuthStatus = async () => {
       setIsLoggedIn(isAuthenticated());
+      const token = localStorage.getItem("token");
+      if (!token) {
+        return;
+      }
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/users/me`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      const userData = await response.json();
+      console.log("User data:", userData);
+
+      if (userData.role === "admin") {
+        setIsAdmin(true);
+        return;
+      } else {
+        setIsAdmin(false);
+        return;
+      }
     };
 
     checkAuthStatus();
@@ -56,6 +78,14 @@ export function Navbar() {
             >
               Create
             </Link>
+            {isAdmin && (
+              <Link
+                className="text-sm font-medium hover:underline underline-offset-4"
+                href="/admin"
+              >
+                Admin
+              </Link>
+            )}
           </>
         )}
         {isLoggedIn ? (
