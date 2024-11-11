@@ -11,7 +11,7 @@ import { supabase } from "@/lib/supabase";
 import { Event } from "@/types/event";
 
 async function getCurrentUser() {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("accessToken");
 
   if (!token) {
     return null;

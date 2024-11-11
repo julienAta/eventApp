@@ -15,7 +15,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import { set } from "zod";
 
 interface EventFormProps {
   event?: {
@@ -34,6 +33,7 @@ interface EventFormProps {
 
 const EventForm: FC<EventFormProps> = ({ event, formType }) => {
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+  const [isLoading, setIsLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [title, setTitle] = useState(event?.title || "");
   const [description, setDescription] = useState(event?.description || "");
@@ -49,6 +49,39 @@ const EventForm: FC<EventFormProps> = ({ event, formType }) => {
   const params = useParams();
   const queryClient = useQueryClient();
 
+  useEffect(() => {
+    async function fetchUser() {
+      try {
+        const token = localStorage.getItem("accessToken");
+        console.log("token", token);
+
+        if (!token) {
+          toast.error("Please log in to create events");
+          router.push("/login");
+          return;
+        }
+
+        const response = await fetch(`${BACKEND_URL}/users/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch user data");
+        }
+
+        const userData = await response.json();
+        console.log("userData", userData);
+
+        setUser(userData);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        toast.error("Failed to load user data");
+      }
+    }
+
+    fetchUser();
+  }, [BACKEND_URL, router]);
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -56,131 +89,97 @@ const EventForm: FC<EventFormProps> = ({ event, formType }) => {
       setPreviewUrl(URL.createObjectURL(file));
     }
   };
+
   const handleImageUpload = async () => {
     if (!image) {
-      toast("Please select an image first");
+      toast.error("Please select an image first");
       return;
     }
 
-    const formData = new FormData();
-    formData.append("file", image);
-
-    // If we're editing an existing event, use its ID
-    // If it's a new event, we'll need to create the event first before uploading the image
-    if (event?.event?.id) {
-      formData.append("eventId", event.event.id);
-    }
-
-    console.log("Uploading image:", {
-      fileName: image.name,
-      fileSize: image.size,
-      fileType: image.type,
-      eventId: event?.event?.id || "New Event",
-    });
-
     try {
+      const formData = new FormData();
+      formData.append("file", image);
+      if (event?.event?.id) {
+        formData.append("eventId", event.event.id);
+      }
+
       const response = await fetch(`${BACKEND_URL}/upload`, {
         method: "POST",
         body: formData,
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Upload successful:", data);
-        setUploadedImageUrl(data.url);
-        toast("Image uploaded successfully!");
-        if (event?.id) {
-          console.log("Existing event updated:", event.id);
-        } else {
-          console.log("Image uploaded for new event, URL:", data.url);
-          // Store this URL to use when creating the new event
-        }
-      } else {
-        const errorData = await response.json();
-        console.error("Upload failed:", errorData);
-        throw new Error(errorData.details || "Failed to upload image");
+      if (!response.ok) {
+        throw new Error("Failed to upload image");
       }
-    } catch (error: any) {
+
+      const data = await response.json();
+      setUploadedImageUrl(data.url);
+      toast.success("Image uploaded successfully!");
+    } catch (error) {
       console.error("Upload error:", error);
-      toast(`Failed to upload image: ${error.message}`);
+      toast.error("Failed to upload image");
     }
   };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const eventData = {
-      title,
-      description,
-      date,
-      location,
-      image_url: uploadedImageUrl,
-      creator_id: user.id,
-    };
+
+    if (!user) {
+      toast.error("Please log in to create events");
+      router.push("/login");
+      return;
+    }
+
+    if (!title || !description || !date || !location) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    setIsLoading(true);
 
     try {
-      let response;
-      if (formType === "Create") {
-        response = await fetch(`${BACKEND_URL}/events`, {
-          method: "POST",
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+
+      const eventData = {
+        title,
+        description,
+        date,
+        location,
+        image_url: uploadedImageUrl,
+        creator_id: user.id,
+      };
+
+      const response = await fetch(
+        `${BACKEND_URL}/events${formType === "Edit" ? `/${params.id}` : ""}`,
+        {
+          method: formType === "Create" ? "POST" : "PUT",
           headers: {
             "Content-Type": "application/json",
-          },
-          body: JSON.stringify(eventData), // Sending a single object
-        });
-      } else {
-        response = await fetch(`${BACKEND_URL}/events/${params.id}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(eventData),
-        });
-      }
-      if (response.ok) {
-        toast(
-          `Event ${formType === "Create" ? "created" : "updated"} successfully!`
-        );
-        queryClient.invalidateQueries({
-          queryKey: ["events"],
-        });
-        router.push("/events");
-      } else {
-        throw new Error("Something went wrong");
-      }
-    } catch (error) {
-      toast(
-        `Failed to ${
-          formType === "Create" ? "create" : "update"
-        } event: ${error}`
+        }
       );
+
+      if (!response.ok) {
+        throw new Error("Failed to save event");
+      }
+
+      toast.success(
+        `Event ${formType === "Create" ? "created" : "updated"} successfully!`
+      );
+      queryClient.invalidateQueries({ queryKey: ["events"] });
+      router.push("/events");
+    } catch (error) {
+      console.error("Event save error:", error);
+      toast.error(`Failed to ${formType.toLowerCase()} event`);
+    } finally {
+      setIsLoading(false);
     }
   };
-
-  useEffect(() => {
-    async function fetchUser() {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          return;
-        }
-
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/users/me`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        const userData = await response.json();
-        console.log("User data:", userData);
-
-        setUser(userData);
-      } catch (error) {
-        console.error("Error fetching user events:", error);
-      }
-    }
-
-    fetchUser();
-  }, []);
-
   return (
     <div className="container mx-auto max-w-2xl py-8">
       <form onSubmit={handleSubmit}>
@@ -289,8 +288,12 @@ const EventForm: FC<EventFormProps> = ({ event, formType }) => {
             </div>
           </CardContent>
           <CardFooter className="flex justify-end">
-            <Button className="bg-primary hover:bg-primary/80" type="submit">
-              {formType} Event
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="bg-primary hover:bg-primary/80"
+            >
+              {isLoading ? "Saving..." : `${formType} Event`}
             </Button>
           </CardFooter>
         </Card>

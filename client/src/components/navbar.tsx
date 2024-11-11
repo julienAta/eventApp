@@ -15,7 +15,7 @@ export function Navbar() {
   useEffect(() => {
     const checkAuthStatus = async () => {
       setIsLoggedIn(isAuthenticated());
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       if (!token) {
         return;
       }
@@ -27,6 +27,7 @@ export function Navbar() {
         }
       );
       const userData = await response.json();
+      console.log(userData, "userData");
 
       if (userData.role === "admin") {
         setIsAdmin(true);

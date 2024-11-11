@@ -28,7 +28,7 @@ export default function Dashboard({ events }: { events: Event[] }) {
   useEffect(() => {
     async function fetchUserEvents() {
       try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("accessToken");
         if (!token) {
           setUserEvents([]);
           return;

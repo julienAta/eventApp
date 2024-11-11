@@ -1,31 +1,43 @@
 import { Request, Response, NextFunction } from "express";
-import { verifyAccessToken } from "../utils/jwtUtils.js";
-import { z } from "zod";
+import jwt from "jsonwebtoken";
+import { logger } from "../utils/logger";
 
-const TokenPayloadSchema = z.object({
-  id: z.string(),
-  email: z.string().email(),
-});
+const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
+
+export interface AuthRequest extends Request {
+  user?: {
+    id: string;
+    email: string;
+  };
+}
 
 export const authenticateJWT = (
-  req: Request,
+  req: AuthRequest,
   res: Response,
   next: NextFunction
 ) => {
-  const authHeader = req.headers.authorization;
+  try {
+    const authHeader = req.headers.authorization;
 
-  if (authHeader) {
-    const token = authHeader.split(" ")[1];
-
-    try {
-      const decoded = verifyAccessToken(token);
-      const user = TokenPayloadSchema.parse(decoded);
-      (req as any).user = user;
-      next();
-    } catch (error) {
-      res.sendStatus(403);
+    if (!authHeader) {
+      return res.status(401).json({ message: "No token provided" });
     }
-  } else {
-    res.sendStatus(401);
+
+    const token = authHeader.split(" ")[1];
+    if (!token) {
+      return res.status(401).json({ message: "No token provided" });
+    }
+
+    jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
+      if (err) {
+        return res.status(403).json({ message: "Invalid token" });
+      }
+
+      req.user = user;
+      next();
+    });
+  } catch (error) {
+    logger.error("Auth error:", error);
+    res.status(500).json({ message: "Authentication error" });
   }
 };

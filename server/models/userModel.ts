@@ -11,6 +11,7 @@ export const addUser = async (user: NewUser): Promise<User> => {
       name: user.name,
       email: user.email,
       password: hashedPassword,
+      role: "default",
     })
     .select()
     .single();

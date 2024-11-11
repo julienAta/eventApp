@@ -61,7 +61,7 @@ export default function AdminDashboard() {
       // Fetch messages
       const { data: messagesData, error: messagesError } = await supabase
         .from("chat_messages")
-        .select("*, user:user_id(name), event:event_id(title)")
+        .select("*")
         .order("created_at", { ascending: false });
 
       if (messagesError)

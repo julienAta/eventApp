@@ -33,6 +33,7 @@ const fetchEvents = async () => {
     return [];
   }
 };
+
 const fetchEvent = async (id: number) => {
   const res = await fetch(`${backendUrl}/events/${id}`, {
     method: "GET",

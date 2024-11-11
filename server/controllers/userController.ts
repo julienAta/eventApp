@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import * as userModel from "../models/userModel.js";
 import * as argon2 from "argon2";
+import jwt from "jsonwebtoken";
+
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -13,12 +15,23 @@ import {
 import { logger } from "../utils/logger";
 
 import { supabase } from "../supabase/supabaseClient.js";
+import { log } from "winston";
+
 interface AuthenticatedRequest extends Request {
   user?: {
     id: string;
     name: string;
   };
 }
+export interface AuthRequest extends Request {
+  user?: {
+    id: string;
+    email: string;
+  };
+}
+const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
+const REFRESH_SECRET =
+  process.env.REFRESH_TOKEN_SECRET || "your_refresh_secret";
 
 export const getAllUsers = async (
   req: Request,
@@ -60,38 +73,26 @@ export const getUserById = async (
   }
 };
 
-export const getCurrentUser = async (
-  req: AuthenticatedRequest,
-  res: Response
-): Promise<void> => {
+export const getCurrentUser = async (req: AuthRequest, res: Response) => {
   try {
-    const user = req.user;
+    if (!req.user) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
 
+    const user = await userModel.getUserById(req.user.id);
     if (!user) {
-      logger.warn("Unauthenticated user tried to access getCurrentUser");
-      res.status(401).json({ message: "Not authenticated" });
-      return;
+      return res.status(404).json({ message: "User not found" });
     }
 
-    const userDetails = await userModel.getUserById(user.id);
-
-    if (!userDetails) {
-      logger.warn("User not found in getCurrentUser", { userId: user.id });
-      res.status(404).json({ message: "User not found" });
-      return;
-    }
-
-    logger.info("Retrieved current user", { userId: user.id });
     res.json({
-      id: userDetails.id,
-      name: userDetails.name,
-      role: userDetails.role,
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
     });
   } catch (error) {
-    logger.error("Error in getCurrentUser", { error });
-    res
-      .status(500)
-      .json({ message: "An error occurred while fetching user data" });
+    logger.error("Get current user error:", error);
+    res.status(500).json({ message: "Failed to get user data" });
   }
 };
 
@@ -101,6 +102,8 @@ export const createUser = async (
 ): Promise<void> => {
   try {
     const newUser = NewUserSchema.parse(req.body);
+    logger.info("Usesfully", newUser);
+    console.log(newUser, "newUser");
     const createdUser = await userModel.addUser(newUser);
     const validatedUser = UserSchema.parse(createdUser);
     logger.info("User created successfully", { userId: validatedUser.id });
@@ -205,139 +208,92 @@ export const verifyUserExists = async (userId: string): Promise<boolean> => {
   }
 };
 
-export const loginUser = async (req: Request, res: Response): Promise<void> => {
-  const loginSchema = NewUserSchema.pick({ email: true, password: true });
+export const loginUser = async (req: Request, res: Response) => {
   try {
-    const { email, password } = loginSchema.parse(req.body);
-    logger.info(`Login attempt for email: ${email}`);
+    const { email, password } = req.body;
 
     const user = await userModel.findUserByEmail(email);
-
     if (!user) {
-      logger.warn(`Login attempt with invalid email: ${email}`);
-      res.status(401).json({ message: "Invalid email or password" });
-      return;
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    logger.info(`User found for email: ${email}`);
-
-    const isPasswordValid = await argon2.verify(user.password, password);
-
-    if (!isPasswordValid) {
-      logger.warn(`Login attempt with invalid password for email: ${email}`);
-      res.status(401).json({ message: "Invalid email or password" });
-      return;
+    const validPassword = await argon2.verify(user.password, password);
+    if (!validPassword) {
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    logger.info(`Password verified for user: ${user.id}`);
+    const accessToken = jwt.sign(
+      { id: user.id, email: user.email },
+      JWT_SECRET,
+      { expiresIn: "15m" }
+    );
 
-    const userExists = await verifyUserExists(user.id);
-    if (!userExists) {
-      logger.error(`User not found in database: ${user.id}`);
-      res.status(401).json({ message: "Invalid user" });
-      return;
-    }
+    const refreshToken = jwt.sign({ id: user.id }, REFRESH_SECRET, {
+      expiresIn: "7d",
+    });
 
-    const accessToken = generateAccessToken(user);
-    const refreshToken = generateRefreshToken(user);
+    await userModel.saveRefreshToken(user.id, refreshToken);
 
-    logger.info(`Tokens generated for user: ${user.id}`);
-
-    try {
-      await userModel.saveRefreshToken(user.id, refreshToken);
-    } catch (saveError) {
-      logger.error(`Error saving refresh token:`, {
-        error: saveError instanceof Error ? saveError.message : "Unknown error",
-        stack: saveError instanceof Error ? saveError.stack : "No stack trace",
-        userId: user.id,
-      });
-      res.status(500).json({ message: "Error during login process" });
-      return;
-    }
-
-    logger.info(`User logged in successfully: ${user.id}`);
     res.json({
-      message: "Login successful",
       user: {
         id: user.id,
-        name: user.name,
         email: user.email,
+        name: user.name,
       },
       accessToken,
       refreshToken,
     });
   } catch (error) {
-    if (error instanceof Error) {
-      logger.error(`Login error:`, {
-        error: error.message,
-        stack: error.stack,
-      });
-      if (error.message.includes("parse")) {
-        res.status(400).json({ message: "Invalid input data" });
-      } else {
-        res
-          .status(500)
-          .json({ message: "An unexpected error occurred during login" });
-      }
-    } else {
-      logger.error(`Unknown login error:`, { error });
-      res
-        .status(500)
-        .json({ message: "An unexpected error occurred during login" });
-    }
+    logger.error("Login error:", error);
+    res.status(500).json({ message: "Login failed" });
   }
 };
 
-export const refreshUserToken = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const refreshUserToken = async (req: Request, res: Response) => {
   try {
     const { refreshToken } = req.body;
-
     if (!refreshToken) {
-      logger.warn("Refresh token missing in request");
-      res.status(400).json({ message: "Refresh token is required" });
-      return;
+      return res.status(400).json({ message: "Refresh token required" });
     }
 
     const user = await userModel.getUserByRefreshToken(refreshToken);
-
     if (!user) {
-      logger.warn("Invalid refresh token used", { refreshToken });
-      res.status(401).json({ message: "Invalid refresh token" });
-      return;
+      return res.status(401).json({ message: "Invalid refresh token" });
     }
 
-    const newAccessToken = generateAccessToken(user);
-    const newRefreshToken = generateRefreshToken(user);
+    const accessToken = jwt.sign(
+      { id: user.id, email: user.email },
+      JWT_SECRET,
+      { expiresIn: "15m" }
+    );
 
-    logger.info(`New tokens generated for user: ${user.id}`);
+    const newRefreshToken = jwt.sign({ id: user.id }, REFRESH_SECRET, {
+      expiresIn: "7d",
+    });
 
-    try {
-      await userModel.replaceRefreshToken(
-        user.id,
-        refreshToken,
-        newRefreshToken
-      );
-    } catch (saveError) {
-      logger.error(`Error replacing refresh token:`, {
-        error: saveError instanceof Error ? saveError.message : "Unknown error",
-        stack: saveError instanceof Error ? saveError.stack : "No stack trace",
-        userId: user.id,
-      });
-      res.status(500).json({ message: "Error during token refresh process" });
-      return;
-    }
+    await userModel.replaceRefreshToken(user.id, refreshToken, newRefreshToken);
 
     res.json({
-      accessToken: newAccessToken,
+      accessToken,
       refreshToken: newRefreshToken,
     });
   } catch (error) {
-    logger.error("Error in refreshUserToken:", error);
-    res
-      .status(500)
-      .json({ message: "An error occurred while refreshing the token" });
+    logger.error("Token refresh error:", error);
+    res.status(500).json({ message: "Token refresh failed" });
+  }
+};
+
+export const logoutUser = async (req: AuthRequest, res: Response) => {
+  try {
+    const { refreshToken } = req.body;
+    if (!req.user) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    await userModel.deleteRefreshToken(req.user.id, refreshToken);
+    res.json({ message: "Logged out successfully" });
+  } catch (error) {
+    logger.error("Logout error:", error);
+    res.status(500).json({ message: "Logout failed" });
   }
 };

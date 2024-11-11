@@ -1,267 +1,239 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+// components/Chat.tsx
+import React, { useState, useEffect, useRef } from "react";
 import { io, Socket } from "socket.io-client";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "./ui/scroll-area";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ChatMessage {
   id: string;
-  event_id: number;
-  user_id?: string; // Made optional to handle potential missing user_id
   content: string;
+  event_id: number;
+  user_id: string;
   created_at: string;
-}
-
-interface User {
-  id: string;
-  name: string;
 }
 
 interface ChatProps {
   eventId: number;
-  currentUser: User;
+  currentUser: {
+    id: string;
+    name: string;
+  };
 }
 
-const API_BASE_URL = "http://localhost:3000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 export function Chat({ eventId, currentUser }: ChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [newMessage, setNewMessage] = useState<string>("");
+  const [newMessage, setNewMessage] = useState("");
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const reconnectAttempts = useRef(0);
   const maxReconnectAttempts = 5;
 
-  const connectSocket = useCallback(() => {
-    const token = localStorage.getItem("accessToken");
-    console.log("Attempting to connect to WebSocket at:", API_BASE_URL);
+  const scrollToBottom = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  };
 
-    const newSocket = io(API_BASE_URL, {
-      auth: { token },
-      transports: ["websocket", "polling"],
-      reconnectionAttempts: maxReconnectAttempts,
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
-      timeout: 20000,
-    });
+  // Initialize socket connection
+  useEffect(() => {
+    let socketInstance: Socket | null = null;
 
-    newSocket.on("connect", () => {
-      console.log("Connected to WebSocket. Socket ID:", newSocket.id);
-      setIsConnected(true);
-      reconnectAttempts.current = 0;
-      newSocket.emit("join_room", eventId.toString());
-    });
+    const connectSocket = () => {
+      try {
+        const token = localStorage.getItem("accessToken");
+        if (!token) {
+          return;
+        }
 
-    newSocket.on("connect_error", (error) => {
-      console.error("WebSocket connection error:", error);
-      setIsConnected(false);
-      reconnectAttempts.current++;
-      if (reconnectAttempts.current >= maxReconnectAttempts) {
-        console.error(
-          "Max reconnection attempts reached. Please refresh the page."
-        );
-      }
-    });
-
-    newSocket.on("disconnect", (reason) => {
-      console.log("Disconnected from WebSocket:", reason);
-      setIsConnected(false);
-      if (reason === "io server disconnect") {
-        // The disconnection was initiated by the server, you need to reconnect manually
-        newSocket.connect();
-      }
-    });
-
-    newSocket.on("new_message", (message: ChatMessage | null) => {
-      console.log(
-        "Received new_message event. Raw data:",
-        JSON.stringify(message)
-      );
-      if (message && isValidChatMessage(message)) {
-        console.log("Valid message received, updating state");
-        setMessages((prevMessages) => {
-          const messageExists = prevMessages.some((m) => m.id === message.id);
-          if (!messageExists) {
-            return [...prevMessages, message];
-          }
-          return prevMessages;
+        socketInstance = io(API_URL, {
+          auth: { token },
+          transports: ["websocket", "polling"],
+          reconnectionAttempts: maxReconnectAttempts,
         });
-      } else {
-        console.warn("Received invalid or null message. Raw data:", message);
+
+        socketInstance.on("connect", () => {
+          console.log("Connected to chat server");
+          setIsConnected(true);
+          reconnectAttempts.current = 0;
+          socketInstance?.emit("join_room", eventId.toString());
+        });
+
+        socketInstance.on("connect_error", (error) => {
+          console.error("Connection error:", error);
+          setIsConnected(false);
+          reconnectAttempts.current++;
+
+          if (reconnectAttempts.current >= maxReconnectAttempts) {
+          }
+        });
+
+        socketInstance.on("new_message", (message: ChatMessage) => {
+          setMessages((prev) => [...prev, message]);
+          scrollToBottom();
+        });
+
+        setSocket(socketInstance);
+      } catch (error) {
+        console.error("Socket initialization error:", error);
       }
-    });
+    };
 
-    newSocket.on("message_confirmation", (confirmation) => {
-      console.log("Received message confirmation:", confirmation);
-    });
-
-    newSocket.on("message_error", (error) => {
-      console.error("Received message error:", error);
-      // Display the error message to the user, including the details if available
-      alert(
-        `Error sending message: ${error.message}${
-          error.details ? ` (${error.details})` : ""
-        }`
-      );
-    });
-
-    // ... other socket event handlers ...
-
-    setSocket(newSocket);
+    connectSocket();
 
     return () => {
-      console.log("Cleaning up WebSocket connection");
-      newSocket.off("connect");
-      newSocket.off("disconnect");
-      newSocket.off("new_message");
-      newSocket.off("message_confirmation");
-      newSocket.off("message_error");
-      newSocket.off("error");
-      newSocket.disconnect();
+      if (socketInstance) {
+        socketInstance.off("connect");
+        socketInstance.off("disconnect");
+        socketInstance.off("new_message");
+        socketInstance.disconnect();
+      }
     };
   }, [eventId]);
 
+  // Fetch message history
   useEffect(() => {
-    const cleanup = connectSocket();
-    return cleanup;
-  }, [connectSocket]);
+    const fetchMessages = async () => {
+      try {
+        setIsLoading(true);
+        const token = localStorage.getItem("accessToken");
 
-  useEffect(() => {
+        if (!token) {
+          throw new Error("No authentication token found");
+        }
+
+        const response = await fetch(
+          `${API_URL}/api/chat/${eventId}/messages`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setMessages(data.messages || []);
+        scrollToBottom();
+      } catch (error) {
+        console.error("Error fetching messages:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     fetchMessages();
   }, [eventId]);
 
-  const fetchMessages = async (): Promise<void> => {
-    const token = localStorage.getItem("accessToken");
-
-    if (!token) {
-      console.error("No token found in localStorage");
-
-      return;
-    }
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/chat/${eventId}/messages`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      setMessages(data.messages);
-    } catch (error) {
-      console.error("Error fetching messages:", error);
-    }
-  };
-
-  const sendMessage = async (): Promise<void> => {
-    if (!newMessage.trim() || !socket || !isConnected) {
-      console.log("Cannot send message: Empty message or no active connection");
-      return;
-    }
-
-    const messageToSend = {
-      content: newMessage.trim(),
-      user_id: currentUser.id,
-      event_id: eventId,
-    };
-
-    setNewMessage("");
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !socket || !isConnected) return;
 
     try {
-      console.log("Attempting to send message:", messageToSend);
-      socket.emit("chat_message", messageToSend, (response: any) => {
-        console.log("Received response from chat_message emit:", response);
-        if (response && response.error) {
-          console.error("Error sending message:", response.error);
-          setNewMessage(messageToSend.content);
-          alert(`Error sending message: ${response.error}`);
-        } else if (response && response.status === "ok") {
-          console.log("Message sent successfully:", response);
-        } else {
-          console.warn("Unexpected response from server:", response);
-        }
+      socket.emit("chat_message", {
+        content: newMessage.trim(),
+        event_id: eventId,
       });
+
+      setNewMessage("");
     } catch (error) {
       console.error("Error sending message:", error);
-      setNewMessage(messageToSend.content);
-      alert(`Error sending message: ${error}`);
     }
   };
 
-  const isCurrentUserMessage = (message: ChatMessage): boolean => {
+  const formatTime = (dateString: string) => {
+    return new Date(dateString).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const isCurrentUserMessage = (message: ChatMessage) => {
     return message.user_id === currentUser.id;
   };
 
-  const formatTime = (dateString: string): string => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  };
-
-  function isValidChatMessage(message: any): message is ChatMessage {
+  if (isLoading) {
     return (
-      message !== null &&
-      typeof message === "object" &&
-      typeof message.id === "string" &&
-      typeof message.event_id === "number" &&
-      typeof message.content === "string" &&
-      typeof message.created_at === "string" &&
-      (typeof message.user_id === "string" || message.user_id === null)
+      <div className="flex items-center justify-center h-[61dvh]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-full max-h-[61dvh] w-full mx-auto rounded-lg border overflow-hidden">
-      <h2 className="text-2xl font-bold mb-4 pt-5 px-5">Event Chat</h2>
+    <div className="flex flex-col h-full max-h-[61dvh] w-full mx-auto rounded-lg border overflow-hidden bg-background">
+      <div className="flex items-center justify-between p-4 border-b">
+        <h2 className="text-xl font-semibold">Chat</h2>
+        <div
+          className={`text-sm ${
+            isConnected ? "text-green-500" : "text-yellow-500"
+          }`}
+        >
+          {isConnected ? "Connected" : "Connecting..."}
+        </div>
+      </div>
 
-      <ScrollArea className="flex-1 p-4 space-y-4">
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex flex-col ${
-              isCurrentUserMessage(message) ? "items-end" : "items-start"
-            } space-y-2`}
-          >
+      <ScrollArea className="flex-1 p-4">
+        <div className="space-y-4">
+          {messages.map((message) => (
             <div
-              className={`${
-                isCurrentUserMessage(message)
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted text-muted-foreground"
-              } px-4 py-2 rounded-lg ${
-                isCurrentUserMessage(message)
-                  ? "rounded-br-none"
-                  : "rounded-bl-none"
-              } max-w-[75%]`}
+              key={message.id}
+              className={`flex flex-col ${
+                isCurrentUserMessage(message) ? "items-end" : "items-start"
+              } space-y-1`}
             >
-              <p>{message.content}</p>
+              <div
+                className={`px-4 py-2 rounded-lg max-w-[75%] ${
+                  isCurrentUserMessage(message)
+                    ? "bg-primary text-primary-foreground rounded-br-none"
+                    : "bg-muted text-muted-foreground rounded-bl-none"
+                }`}
+              >
+                <p className="break-words">{message.content}</p>
+              </div>
+              <span className="text-xs text-muted-foreground">
+                {formatTime(message.created_at)}
+              </span>
             </div>
-            <div className="text-xs text-muted-foreground">
-              {formatTime(message.created_at)}
-            </div>
-          </div>
-        ))}
-        <div ref={messagesEndRef} />
+          ))}
+          <div ref={scrollRef} />
+        </div>
       </ScrollArea>
-      <div className="bg-muted/50 px-4 py-2 flex items-center gap-2">
-        <Textarea
-          value={newMessage}
-          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-            setNewMessage(e.target.value)
-          }
-          placeholder="Type your message..."
-          className="flex-1 bg-transparent border-none focus:ring-0 resize-none"
-          onKeyPress={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              sendMessage();
-            }
+
+      <div className="border-t p-4">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSendMessage();
           }}
-        />
-        <Button onClick={sendMessage}>Send</Button>
+          className="flex gap-2"
+        >
+          <Textarea
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            placeholder="Type your message..."
+            className="flex-1 min-h-[2.5rem] max-h-[10rem]"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSendMessage();
+              }
+            }}
+          />
+          <Button
+            type="submit"
+            disabled={!newMessage.trim() || !isConnected}
+            className="self-end"
+          >
+            Send
+          </Button>
+        </form>
       </div>
     </div>
   );
