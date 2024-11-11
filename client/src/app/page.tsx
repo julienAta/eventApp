@@ -5,7 +5,7 @@ export default function Home() {
     <div className="flex h-full w-full flex-col items-center justify-center bg-white dark:bg-gray-950 mt-32">
       <div className="container mx-auto flex max-w-5xl flex-col items-center justify-center px-4 text-center">
         <h1 className="text-5xl font-bold tracking-tighter text-gray-900 dark:text-gray-50 sm:text-6xl md:text-7xl">
-          Event Manager
+          JUNBI
         </h1>
         <p className="mt-4 max-w-2xl text-lg text-gray-500 dark:text-gray-400 md:text-xl">
           Streamline your event planning with our powerful and intuitive

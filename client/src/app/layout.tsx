@@ -8,8 +8,8 @@ import { GeistMono } from "geist/font/mono";
 import { AuthWrapper } from "@/components/AuthWrapper";
 
 export const metadata: Metadata = {
-  title: "Event Manager",
-  description: "A simple event manager app built with Next.js",
+  title: "JUNBI",
+  description: "A simple event manager app",
 };
 
 export default function RootLayout({
