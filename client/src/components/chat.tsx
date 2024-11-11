@@ -170,7 +170,6 @@ export function Chat({ eventId, currentUser }: ChatProps) {
       event_id: eventId,
     };
 
-    // Clear the input field immediately for instant feedback
     setNewMessage("");
 
     try {
@@ -179,7 +178,6 @@ export function Chat({ eventId, currentUser }: ChatProps) {
         console.log("Received response from chat_message emit:", response);
         if (response && response.error) {
           console.error("Error sending message:", response.error);
-          // Show error to user and revert the message in the input field
           setNewMessage(messageToSend.content);
           alert(`Error sending message: ${response.error}`);
         } else if (response && response.status === "ok") {
@@ -190,7 +188,6 @@ export function Chat({ eventId, currentUser }: ChatProps) {
       });
     } catch (error) {
       console.error("Error sending message:", error);
-      // Show error to user and revert the message in the input field
       setNewMessage(messageToSend.content);
       alert(`Error sending message: ${error}`);
     }

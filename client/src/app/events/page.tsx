@@ -1,3 +1,4 @@
+export const revalidate = 0;
 import { EventList } from "@/components/event-list";
 import { fetchEvents } from "@/actions/events";
 import { Suspense } from "react";
