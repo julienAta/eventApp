@@ -86,7 +86,7 @@ export default function EventDetailPage({
         ]);
 
         if (!userData) {
-          router.push("/login");
+          router.push("/auth");
           return;
         }
         setEvent(eventData);

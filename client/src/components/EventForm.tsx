@@ -53,11 +53,10 @@ const EventForm: FC<EventFormProps> = ({ event, formType }) => {
     async function fetchUser() {
       try {
         const token = localStorage.getItem("accessToken");
-        console.log("token", token);
 
         if (!token) {
           toast.error("Please log in to create events");
-          router.push("/login");
+          router.push("/auth");
           return;
         }
 
@@ -126,7 +125,7 @@ const EventForm: FC<EventFormProps> = ({ event, formType }) => {
 
     if (!user) {
       toast.error("Please log in to create events");
-      router.push("/login");
+      router.push("/auth");
       return;
     }
 
