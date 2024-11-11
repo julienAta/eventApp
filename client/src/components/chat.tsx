@@ -51,7 +51,9 @@ export function Chat({ eventId, currentUser }: ChatProps) {
         }
 
         socketInstance = io(API_URL, {
-          auth: { token },
+          auth: {
+            token,
+          },
           transports: ["websocket", "polling"],
           reconnectionAttempts: maxReconnectAttempts,
         });
@@ -136,9 +138,14 @@ export function Chat({ eventId, currentUser }: ChatProps) {
     if (!newMessage.trim() || !socket || !isConnected) return;
 
     try {
+      console.log("Sending message:", newMessage);
+      console.log("Event ID:", eventId);
+      console.log("User ID:", currentUser.id);
+
       socket.emit("chat_message", {
         content: newMessage.trim(),
         event_id: eventId,
+        user_id: currentUser.id,
       });
 
       setNewMessage("");

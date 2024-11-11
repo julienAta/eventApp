@@ -55,7 +55,7 @@ export const initializeSocketIO = (server: any) => {
           .insert({
             content: data.content.trim(),
             event_id: data.event_id,
-            user_id: socket.data.userId,
+            user_id: data.user_id,
           })
           .select("*")
           .single();
