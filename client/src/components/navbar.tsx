@@ -46,6 +46,12 @@ export function Navbar() {
             </Link>
             <Link
               className="text-sm font-medium hover:underline underline-offset-4"
+              href="/dashboard"
+            >
+              Dashboard
+            </Link>
+            <Link
+              className="text-sm font-medium hover:underline underline-offset-4"
               href="/events/create"
             >
               Create

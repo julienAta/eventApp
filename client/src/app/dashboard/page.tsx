@@ -1,5 +1,3 @@
-"use client";
-
 import Dashboard from "@/components/dashboard";
 import { supabase } from "@/lib/supabase";
 import { Event } from "@/types/event";

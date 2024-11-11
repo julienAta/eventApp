@@ -89,8 +89,6 @@ export default function EventDetailPage({
           router.push("/login");
           return;
         }
-
-        console.log("Setting event:", eventData);
         setEvent(eventData);
         setCurrentUser(userData);
         setIsParticipant(
