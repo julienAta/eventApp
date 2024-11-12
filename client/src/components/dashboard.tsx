@@ -13,7 +13,8 @@ import {
 } from "lucide-react";
 import { Spinner } from "@/components/spinner";
 import Link from "next/link";
-
+import { getUser } from "@/lib/authService";
+import { get } from "http";
 interface DashboardStats {
   totalEvents: number;
   upcomingEvents: number;
@@ -28,19 +29,12 @@ export default function Dashboard({ events }: { events: Event[] }) {
   useEffect(() => {
     async function fetchUserEvents() {
       try {
-        const token = localStorage.getItem("accessToken");
-        if (!token) {
+        const userData = await getUser();
+        if (!userData) {
           setUserEvents([]);
           return;
         }
-
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/users/me`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        const userData = await response.json();
+        console.log(userData, "userData");
 
         const filteredEvents = events.filter(
           (event) => event.creator_id === userData.id

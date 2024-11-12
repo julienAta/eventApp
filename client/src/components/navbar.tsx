@@ -4,69 +4,95 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { isAuthenticated, logout } from "@/lib/authService";
+import { logout, getUser, refreshToken } from "@/lib/authService";
+import { Menu } from "lucide-react"; // Using lucide icon instead of raw SVG
+
+interface User {
+  id: string;
+  email: string;
+  role: string;
+  // Add other user properties
+}
 
 export function Navbar() {
   const router = useRouter();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     const checkAuthStatus = async () => {
-      setIsLoggedIn(isAuthenticated());
-      const token = localStorage.getItem("accessToken");
-      if (!token) {
-        return;
-      }
+      try {
+        // Try to get user data
+        const userData = await getUser();
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/users/me`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
+        if (!userData) {
+          // If no user data, try to refresh token
+          try {
+            await refreshToken();
+            // Verify the refresh worked by getting user data again
+            const refreshedUserData = await getUser();
+            setUser(refreshedUserData);
+          } catch (refreshError) {
+            console.error("Token refresh failed:", refreshError);
+            setUser(null);
+          }
+        } else {
+          setUser(userData);
         }
-      );
-      const userData = await response.json();
-      console.log(userData, "userData");
-
-      if (userData.role === "admin") {
-        setIsAdmin(true);
-        return;
-      } else {
-        setIsAdmin(false);
-        return;
+      } catch (error) {
+        console.error("Auth check failed:", error);
+        setUser(null);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     checkAuthStatus();
-    window.addEventListener("storage", checkAuthStatus);
 
-    return () => {
-      window.removeEventListener("storage", checkAuthStatus);
+    // Listen for storage events (e.g., logout in another tab)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "accessToken" && !e.newValue) {
+        setUser(null);
+      }
     };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
-  const handleLogout = () => {
-    logout();
-    setIsLoggedIn(false);
-    router.push("/auth");
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setUser(null);
+      router.push("/auth");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <header className="flex h-20 w-full shrink-0 items-center px-4 md:px-6 border-b">
+        <div className="w-full flex justify-center">
+          <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-t-2 border-primary"></div>
+        </div>
+      </header>
+    );
+  }
 
   return (
-    <header className="flex h-20 w-full shrink-0 items-center px-4 md:px-6 border-b relative z-50">
+    <header className="flex h-20 w-full shrink-0 items-center px-4 md:px-6 border-b relative z-50 bg-background">
       <Link className="mr-6 flex items-center" href="/">
         <span className="text-lg font-semibold">JUNBI</span>
       </Link>
-      <nav
-        className={`ml-auto  items-center gap-4 md:gap-6 hidden ${
-          isMenuOpen ? "hidden" : "flex"
-        } md:flex`}
-      >
-        {isLoggedIn && (
+
+      {/* Desktop Navigation */}
+      <nav className="ml-auto hidden md:flex items-center gap-6">
+        {user && (
           <>
             <Link
               className="text-sm font-medium hover:underline underline-offset-4"
@@ -86,7 +112,7 @@ export function Navbar() {
             >
               Create
             </Link>
-            {isAdmin && (
+            {user.role === "admin" && (
               <Link
                 className="text-sm font-medium hover:underline underline-offset-4"
                 href="/admin"
@@ -96,7 +122,8 @@ export function Navbar() {
             )}
           </>
         )}
-        {isLoggedIn ? (
+
+        {user ? (
           <Button
             variant="outline"
             onClick={handleLogout}
@@ -112,31 +139,23 @@ export function Navbar() {
           </Link>
         )}
       </nav>
-      <div className="ml-4 md:hidden">
-        <Button variant="ghost" onClick={toggleMenu}>
-          <svg
-            className={`h-6 w-6 transition-transform duration-300 ${
+
+      {/* Mobile Menu Button */}
+      <div className="ml-auto md:hidden">
+        <Button variant="ghost" size="icon" onClick={toggleMenu}>
+          <Menu
+            className={`h-5 w-5 transition-transform duration-200 ${
               isMenuOpen ? "rotate-90" : ""
             }`}
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M4 6H20M4 12H20M4 18H20"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          />
         </Button>
       </div>
 
+      {/* Mobile Navigation */}
       {isMenuOpen && (
-        <div className="absolute top-20 left-0 w-full bg-white shadow-lg px-4 py-2">
-          <nav className="flex flex-col items-start gap-2">
-            {isLoggedIn && (
+        <div className="absolute top-full left-0 w-full bg-background border-b shadow-lg animate-in slide-in-from-top duration-200">
+          <nav className="flex flex-col p-4 gap-4">
+            {user && (
               <>
                 <Link
                   className="text-sm font-medium hover:underline underline-offset-4"
@@ -159,7 +178,7 @@ export function Navbar() {
                 >
                   Create
                 </Link>
-                {isAdmin && (
+                {user.role === "admin" && (
                   <Link
                     className="text-sm font-medium hover:underline underline-offset-4"
                     href="/admin"
@@ -170,20 +189,23 @@ export function Navbar() {
                 )}
               </>
             )}
-            {isLoggedIn ? (
+            {user ? (
               <Button
                 variant="outline"
                 onClick={() => {
                   handleLogout();
                   toggleMenu();
                 }}
-                className="text-sm font-medium"
+                className="text-sm font-medium w-full"
               >
                 Disconnect
               </Button>
             ) : (
-              <Link href="/auth" onClick={toggleMenu}>
-                <Button variant="outline" className="text-sm font-medium">
+              <Link href="/auth" onClick={toggleMenu} className="w-full">
+                <Button
+                  variant="outline"
+                  className="text-sm font-medium w-full"
+                >
                   Login
                 </Button>
               </Link>

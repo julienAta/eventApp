@@ -35,13 +35,45 @@ export async function signUp(name: string, email: string, password: string) {
   return response.json();
 }
 
-export function isAuthenticated(): boolean {
-  if (typeof window !== "undefined") {
-    return !!localStorage.getItem("accessToken");
-  }
-  return false;
-}
+export async function getUser() {
+  try {
+    if (typeof window === "undefined") {
+      return null;
+    }
 
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      return null;
+    }
+
+    // Make sure to add 'Bearer' prefix
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/users/me`, // Note: added /api prefix
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      if (response.status === 403) {
+        // Token might be expired, try to refresh
+        // You might want to implement token refresh logic here
+        localStorage.removeItem("accessToken");
+        return null;
+      }
+      throw new Error("Failed to fetch user data");
+    }
+
+    const userData = await response.json();
+    return userData;
+  } catch (error) {
+    console.error("Error fetching user data:", error);
+    return null;
+  }
+}
 export async function refreshToken() {
   const refreshToken = localStorage.getItem("refreshToken");
   if (!refreshToken) {
