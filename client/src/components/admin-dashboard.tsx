@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { supabase } from "@/lib/supabase-admin";
+import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Trash2, Users, CalendarDays, MessagesSquare } from "lucide-react";
 import { Spinner } from "@/components/spinner";
