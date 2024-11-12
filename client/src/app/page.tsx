@@ -85,7 +85,7 @@ export default function Home() {
       category: "Backend",
       icon: Server,
       description:
-        "JavaScript runtime built on Chrome's V8 JavaScript engine for scalable network applications",
+        "JavaScript runtime built on Chrome&apos;s V8 JavaScript engine for scalable network applications",
       features: ["Event-Driven", "Non-Blocking I/O", "Large Package Ecosystem"],
     },
     {
@@ -266,7 +266,7 @@ export default function Home() {
           >
             <h2 className="text-4xl font-bold mb-8">About JUNBI</h2>
             <p className="text-xl text-muted-foreground mb-16 leading-relaxed">
-              JUNBI is more than just an event planning platform - it's a
+              JUNBI is more than just an event planning platform - it&apos;s a
               comprehensive solution designed to simplify the entire event
               management process. From conception to execution, our platform
               provides the tools you need to create memorable experiences.

@@ -14,57 +14,15 @@ interface User {
   // Add other user properties
 }
 
-export function Navbar() {
+export function Navbar({ user }: { user: User }) {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  useEffect(() => {
-    const checkAuthStatus = async () => {
-      try {
-        // Try to get user data
-        const userData = await getUser();
-
-        if (!userData) {
-          // If no user data, try to refresh token
-          try {
-            await refreshToken();
-            // Verify the refresh worked by getting user data again
-            const refreshedUserData = await getUser();
-            setUser(refreshedUserData);
-          } catch (refreshError) {
-            console.error("Token refresh failed:", refreshError);
-            setUser(null);
-          }
-        } else {
-          setUser(userData);
-        }
-      } catch (error) {
-        console.error("Auth check failed:", error);
-        setUser(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuthStatus();
-
-    // Listen for storage events (e.g., logout in another tab)
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "accessToken" && !e.newValue) {
-        setUser(null);
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
 
   const handleLogout = async () => {
     try {
       await logout();
-      setUser(null);
+
       router.push("/auth");
     } catch (error) {
       console.error("Logout failed:", error);
@@ -72,17 +30,6 @@ export function Navbar() {
   };
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-
-  // Show loading state
-  if (isLoading) {
-    return (
-      <header className="flex h-20 w-full shrink-0 items-center px-4 md:px-6 border-b">
-        <div className="w-full flex justify-center">
-          <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-t-2 border-primary"></div>
-        </div>
-      </header>
-    );
-  }
 
   return (
     <header className="flex h-20 w-full shrink-0 items-center px-4 md:px-6 border-b relative z-50 bg-background">

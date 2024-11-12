@@ -3,13 +3,15 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "start:backend": "pnpm --filter backend start",
-    "start:frontend": "pnpm --filter frontend dev",
-    "start": "concurrently \"pnpm --filter backend start\" \"pnpm --filter frontend dev\""
+    "start:server": "pnpm --filter server start",
+    "start:client": "pnpm --filter client dev",
+    "start": "concurrently \"pnpm --filter server start\" \"pnpm --filter client dev\"",
+    "build": "pnpm --filter client build",
+    "start-prod": "concurrently \"pnpm --filter server start\" \"pnpm --filter client start\""
   },
   "workspaces": [
-    "backend",
-    "frontend"
+    "server",
+    "client"
   ],
   "devDependencies": {
     "concurrently": "^6.0.0"

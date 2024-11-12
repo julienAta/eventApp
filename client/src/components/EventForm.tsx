@@ -29,12 +29,12 @@ interface EventFormProps {
     };
   };
   formType: "Create" | "Edit";
+  user: any;
 }
 
-const EventForm: FC<EventFormProps> = ({ event, formType }) => {
+const EventForm: FC<EventFormProps> = ({ event, formType, user }) => {
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
   const [isLoading, setIsLoading] = useState(false);
-  const [user, setUser] = useState<any>(null);
   const [title, setTitle] = useState(event?.title || "");
   const [description, setDescription] = useState(event?.description || "");
   const [date, setDate] = useState(event?.date || "");
@@ -48,38 +48,6 @@ const EventForm: FC<EventFormProps> = ({ event, formType }) => {
   const router = useRouter();
   const params = useParams();
   const queryClient = useQueryClient();
-
-  useEffect(() => {
-    async function fetchUser() {
-      try {
-        const token = localStorage.getItem("accessToken");
-
-        if (!token) {
-          toast.error("Please log in to create events");
-          router.push("/auth");
-          return;
-        }
-
-        const response = await fetch(`${BACKEND_URL}/users/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch user data");
-        }
-
-        const userData = await response.json();
-        console.log("userData", userData);
-
-        setUser(userData);
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        toast.error("Failed to load user data");
-      }
-    }
-
-    fetchUser();
-  }, [BACKEND_URL, router]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {

@@ -18,5 +18,6 @@ async function getEvents(): Promise<Event[]> {
 export default async function DashboardPage() {
   const events = await getEvents();
   const user = await getUser();
+  if (!user) return <div>You are not authorized to access this page</div>;
   return <Dashboard events={events} user={user} />;
 }
