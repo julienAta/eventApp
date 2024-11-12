@@ -117,7 +117,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center py-32">
+      <section className="relative min-h-[calc(100vh-8rem)] flex items-center justify-center py-32">
         <motion.div
           className="container mx-auto px-4 text-center"
           initial="hidden"
