@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabase";
 import { Event } from "@/types/event";
 import { getUser } from "@/lib/authService";
 import { getAccessToken } from "@/lib/authService";
+
 async function getEvent(id: number): Promise<Event> {
   try {
     const { data, error } = await supabase
