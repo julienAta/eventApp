@@ -2,20 +2,14 @@ import { Request, Response } from "express";
 import * as userModel from "../models/userModel.js";
 import * as argon2 from "argon2";
 import jwt from "jsonwebtoken";
-
-import {
-  generateAccessToken,
-  generateRefreshToken,
-} from "../utils/jwtUtils.js";
 import {
   UserSchema,
   NewUserSchema,
   UpdateUserSchema,
 } from "../schemas/userSchema.js";
 import { logger } from "../utils/logger";
-
 import { supabase } from "../supabase/supabaseClient.js";
-import { log } from "winston";
+import { z } from "zod";
 
 interface AuthenticatedRequest extends Request {
   user?: {
@@ -23,15 +17,25 @@ interface AuthenticatedRequest extends Request {
     name: string;
   };
 }
+
 export interface AuthRequest extends Request {
   user?: {
     id: string;
     email: string;
   };
 }
+
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 const REFRESH_SECRET =
   process.env.REFRESH_TOKEN_SECRET || "your_refresh_secret";
+
+// Cookie configuration
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax" as const,
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+};
 
 export const getAllUsers = async (
   req: Request,
@@ -101,28 +105,52 @@ export const createUser = async (
   res: Response
 ): Promise<void> => {
   try {
+    console.log("Request body:", {
+      ...req.body,
+      password: "[REDACTED]",
+    });
+
     const newUser = NewUserSchema.parse(req.body);
-    logger.info("Usesfully", newUser);
-    console.log(newUser, "newUser");
+    console.log("Parsed user data:", {
+      ...newUser,
+      password: "[REDACTED]",
+    });
+
     const createdUser = await userModel.addUser(newUser);
+    console.log("Created user:", {
+      ...createdUser,
+      password: "[REDACTED]",
+    });
+
     const validatedUser = UserSchema.parse(createdUser);
-    logger.info("User created successfully", { userId: validatedUser.id });
+
     res
       .status(201)
       .json({ message: "User created successfully", user: validatedUser });
   } catch (error) {
-    if (error instanceof Error) {
-      logger.warn("Invalid input for user creation", { error: error.message });
+    console.error("Full error details:", {
+      error,
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+
+    if (error instanceof z.ZodError) {
+      console.log("Validation error:", error.issues);
+      res.status(400).json({
+        error: "Validation error",
+        details: error.issues,
+      });
+    } else if (error instanceof Error) {
+      console.error("Known error:", error.message);
       res.status(400).json({ error: error.message });
     } else {
-      logger.error("Error occurred while creating user", { error });
-      res
-        .status(500)
-        .json({ message: "An error occurred while creating the user" });
+      console.error("Unknown error type:", error);
+      res.status(500).json({
+        message: "An error occurred while creating the user",
+      });
     }
   }
 };
-
 export const updateUser = async (
   req: Request,
   res: Response
@@ -180,6 +208,7 @@ export const deleteUser = async (
       .json({ message: "An error occurred while deleting the user" });
   }
 };
+
 export const verifyUserExists = async (userId: string): Promise<boolean> => {
   try {
     const { data, error } = await supabase
@@ -189,25 +218,21 @@ export const verifyUserExists = async (userId: string): Promise<boolean> => {
       .single();
 
     if (error) {
-      logger.error("Error verifying user existence:", {
-        errorObject: error,
-        errorMessage: error.message,
-        userId: userId,
-      });
+      logger.error("Error verifying user existence:", { error });
       return false;
     }
 
     return !!data;
   } catch (error) {
-    logger.error("Unexpected error in verifyUserExists:", {
-      error: error instanceof Error ? error.message : "Unknown error",
-      stack: error instanceof Error ? error.stack : "No stack trace",
-      userId: userId,
-    });
+    logger.error("Unexpected error in verifyUserExists:", { error });
     return false;
   }
 };
-
+interface UserPayload {
+  id: string;
+  email: string;
+  role?: string;
+}
 export const loginUser = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
@@ -222,12 +247,13 @@ export const loginUser = async (req: Request, res: Response) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const accessToken = jwt.sign(
-      { id: user.id, email: user.email },
-      JWT_SECRET,
-      { expiresIn: "15m" }
-    );
+    const payload: UserPayload = {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    };
 
+    const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: "15m" });
     const refreshToken = jwt.sign({ id: user.id }, REFRESH_SECRET, {
       expiresIn: "7d",
     });
@@ -239,6 +265,7 @@ export const loginUser = async (req: Request, res: Response) => {
         id: user.id,
         email: user.email,
         name: user.name,
+        role: user.role,
       },
       accessToken,
       refreshToken,
@@ -248,10 +275,9 @@ export const loginUser = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Login failed" });
   }
 };
-
 export const refreshUserToken = async (req: Request, res: Response) => {
   try {
-    const { refreshToken } = req.body;
+    const refreshToken = req.cookies.refreshToken;
     if (!refreshToken) {
       return res.status(400).json({ message: "Refresh token required" });
     }
@@ -273,10 +299,15 @@ export const refreshUserToken = async (req: Request, res: Response) => {
 
     await userModel.replaceRefreshToken(user.id, refreshToken, newRefreshToken);
 
-    res.json({
-      accessToken,
-      refreshToken: newRefreshToken,
+    // Update cookies
+    res.cookie("accessToken", accessToken, {
+      ...COOKIE_OPTIONS,
+      maxAge: 15 * 60 * 1000, // 15 minutes
     });
+
+    res.cookie("refreshToken", newRefreshToken, COOKIE_OPTIONS);
+
+    res.json({ message: "Tokens refreshed successfully" });
   } catch (error) {
     logger.error("Token refresh error:", error);
     res.status(500).json({ message: "Token refresh failed" });
@@ -285,12 +316,19 @@ export const refreshUserToken = async (req: Request, res: Response) => {
 
 export const logoutUser = async (req: AuthRequest, res: Response) => {
   try {
-    const { refreshToken } = req.body;
     if (!req.user) {
       return res.status(401).json({ message: "Not authenticated" });
     }
 
-    await userModel.deleteRefreshToken(req.user.id, refreshToken);
+    const refreshToken = req.cookies.refreshToken;
+    if (refreshToken) {
+      await userModel.deleteRefreshToken(req.user.id, refreshToken);
+    }
+
+    // Clear cookies
+    res.clearCookie("accessToken");
+    res.clearCookie("refreshToken");
+
     res.json({ message: "Logged out successfully" });
   } catch (error) {
     logger.error("Logout error:", error);

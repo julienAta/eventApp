@@ -1,4 +1,4 @@
-// components/Chat.tsx
+"use client";
 import React, { useState, useEffect, useRef } from "react";
 import { io, Socket } from "socket.io-client";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,11 +19,12 @@ interface ChatProps {
     id: string;
     name: string;
   };
+  accessToken: string;
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
-export function Chat({ eventId, currentUser }: ChatProps) {
+export function Chat({ eventId, currentUser, accessToken }: ChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -42,17 +43,17 @@ export function Chat({ eventId, currentUser }: ChatProps) {
   // Initialize socket connection
   useEffect(() => {
     let socketInstance: Socket | null = null;
+    console.log(accessToken, "accessToken,,");
 
     const connectSocket = () => {
       try {
-        const token = localStorage.getItem("accessToken");
-        if (!token) {
+        if (!accessToken) {
           return;
         }
 
         socketInstance = io(API_URL, {
           auth: {
-            token,
+            accessToken,
           },
           transports: ["websocket", "polling"],
           reconnectionAttempts: maxReconnectAttempts,
@@ -102,17 +103,16 @@ export function Chat({ eventId, currentUser }: ChatProps) {
     const fetchMessages = async () => {
       try {
         setIsLoading(true);
-        const token = localStorage.getItem("accessToken");
 
-        if (!token) {
-          throw new Error("No authentication token found");
+        if (!accessToken) {
+          throw new Error("No authentication accessToken found");
         }
 
         const response = await fetch(
           `${API_URL}/api/chat/${eventId}/messages`,
           {
             headers: {
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${accessToken}`,
             },
           }
         );

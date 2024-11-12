@@ -1,7 +1,14 @@
 import React from "react";
 import AdminDashboard from "@/components/admin-dashboard";
-function AdminPage() {
-  return <AdminDashboard />;
+import { getUser } from "@/lib/authService";
+async function AdminPage() {
+  const user = await getUser();
+
+  if (user.role !== "admin") {
+    return <div>You are not authorized to access this page</div>;
+  }
+
+  return <AdminDashboard user={user} />;
 }
 
 export default AdminPage;

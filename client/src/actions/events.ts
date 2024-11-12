@@ -14,12 +14,6 @@ const fetchEvents = async () => {
       throw new Error("Failed to fetch events");
     }
 
-    const contentType = res.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json")) {
-      console.error("Expected JSON response, but got:", contentType);
-      throw new Error("Invalid content-type in response");
-    }
-
     const data = await res.json();
 
     if (Array.isArray(data.events)) {

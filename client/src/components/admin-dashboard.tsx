@@ -23,7 +23,7 @@ interface Stats {
   totalMessages: number;
 }
 
-export default function AdminDashboard() {
+export default function AdminDashboard({ user }: { user: any }) {
   const [stats, setStats] = useState<Stats>({
     totalUsers: 0,
     totalEvents: 0,

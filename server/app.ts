@@ -1,6 +1,9 @@
 import express from "express";
 import http from "http";
 import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
+import cors from "cors";
+
 import { initializeSocketIO } from "./socketHandlers/socketManager";
 import { setupMiddleware } from "./middlewares/middleware.js";
 import { logger } from "./utils/logger";
@@ -11,6 +14,16 @@ import { supabase } from "./supabase/supabaseClient";
 dotenv.config();
 
 const app = express();
+app.use(cookieParser());
+app.use(
+  cors({
+    origin: "http://localhost:3001", // Your frontend URL
+    // or origin: process.env.FRONTEND_URL,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 const server = http.createServer(app);
 
 initializeSocketIO(server);

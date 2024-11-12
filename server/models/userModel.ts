@@ -4,20 +4,41 @@ import { supabase } from "../supabase/supabaseClient.js";
 import { logger } from "../utils/logger";
 
 export const addUser = async (user: NewUser): Promise<User> => {
-  const hashedPassword = await argon2.hash(user.password);
-  const { data, error } = await supabase
-    .from("users")
-    .insert({
+  try {
+    console.log("Attempting to add user:", {
       name: user.name,
       email: user.email,
-      password: hashedPassword,
-      role: "default",
-    })
-    .select()
-    .single();
+      role: user.role,
+    });
 
-  if (error) throw error;
-  return data as User;
+    const hashedPassword = await argon2.hash(user.password);
+
+    const { data, error } = await supabase
+      .from("users")
+      .insert({
+        name: user.name,
+        email: user.email,
+        password: hashedPassword,
+        role: user.role || "default",
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Supabase error:", error);
+      throw error;
+    }
+
+    console.log("User added successfully:", data);
+    return data as User;
+  } catch (error) {
+    console.error("Error in addUser:", {
+      error,
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+    throw error;
+  }
 };
 
 export const findUserByEmail = async (email: string): Promise<User | null> => {

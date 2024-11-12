@@ -1,144 +1,142 @@
+"use server";
 const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  role?: string;
+}
+import { cookies } from "next/headers";
+
 export async function signIn(email: string, password: string) {
-  const response = await fetch(`${API_URL}/users/login`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ email, password }),
-  });
+  try {
+    const response = await fetch(`${API_URL}/users/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    });
 
-  if (!response.ok) {
-    throw new Error("Failed to sign in");
+    if (!response.ok) {
+      throw new Error("Failed to sign in");
+    }
+
+    const data = await response.json();
+    const token = data.accessToken;
+    const refreshToken = data.refreshToken;
+
+    // Store user data in cookies
+    cookies().set("accessToken", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax" as const,
+      maxAge: 15 * 60 * 1000, // 15 minutes
+    });
+    cookies().set("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax" as const,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+    // Store user data in cache
+    return data.user;
+  } catch (error) {
+    console.error("Sign in error:", error);
+    throw error;
   }
-
-  const data = await response.json();
-  localStorage.setItem("accessToken", data.accessToken);
-  localStorage.setItem("refreshToken", data.refreshToken);
-  return data;
 }
 
 export async function signUp(name: string, email: string, password: string) {
-  const response = await fetch(`${API_URL}/users`, {
+  const testUser = {
+    name: "Test User AAAAdzadazdAAAAAAA",
+    email: "testdAAAAAdzdaAAAAAAAazd2@example.com",
+    password: "password123",
+    role: "default",
+  };
+
+  const user = {
+    name,
+    email,
+    password,
+    role: "default",
+  };
+
+  // In console or test file
+  const response = await fetch("http://localhost:3000/api/users/register", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ name, email, password, rôle: "default" }),
+    body: JSON.stringify(user),
   });
+  const data = await response.json();
 
   if (!response.ok) {
-    throw new Error("Failed to sign up");
+    throw new Error(data.message || "Failed to sign up");
   }
 
-  return response.json();
+  return data;
 }
-
 export async function getUser() {
   try {
-    if (typeof window === "undefined") {
-      return null;
-    }
+    const accessToken = cookies().get("accessToken");
 
-    const token = localStorage.getItem("accessToken");
-    if (!token) {
-      return null;
-    }
-
-    // Make sure to add 'Bearer' prefix
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/users/me`, // Note: added /api prefix
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const response = await fetch(`${API_URL}/users/me`, {
+      headers: {
+        Authorization: `Bearer ${accessToken?.value}`,
+        "Content-Type": "application/json",
+      },
+    });
 
     if (!response.ok) {
-      if (response.status === 403) {
-        // Token might be expired, try to refresh
-        // You might want to implement token refresh logic here
-        localStorage.removeItem("accessToken");
-        return null;
-      }
-      throw new Error("Failed to fetch user data");
+      return null;
     }
 
-    const userData = await response.json();
-    return userData;
+    return response.json();
   } catch (error) {
     console.error("Error fetching user data:", error);
     return null;
   }
 }
+
 export async function refreshToken() {
-  const refreshToken = localStorage.getItem("refreshToken");
-  if (!refreshToken) {
-    throw new Error("No refresh token available");
-  }
-
-  const response = await fetch(`${API_URL}/users/refresh-token`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ refreshToken }),
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to refresh token");
-  }
-
-  const data = await response.json();
-  localStorage.setItem("accessToken", data.accessToken);
-  localStorage.setItem("refreshToken", data.refreshToken);
-  return data;
-}
-
-export function logout() {
-  localStorage.removeItem("accessToken");
-  localStorage.removeItem("refreshToken");
-}
-
-export async function fetchWithToken(url: string, options: RequestInit = {}) {
-  let accessToken = localStorage.getItem("accessToken");
-
-  if (!accessToken) {
-    throw new Error("No access token available");
-  }
-
   try {
-    const response = await fetch(url, {
-      ...options,
+    const response = await fetch(`${API_URL}/users/refresh-token`, {
+      method: "POST",
       headers: {
-        ...options.headers,
-        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
       },
     });
 
-    if (response.status === 401) {
-      // Token has expired, try to refresh it
-      await refreshToken();
-      accessToken = localStorage.getItem("accessToken");
-      // Retry the original request with the new token
-      return fetch(url, {
-        ...options,
-        headers: {
-          ...options.headers,
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
+    if (!response.ok) {
+      throw new Error("Failed to refresh token");
     }
 
-    return response;
+    // No need to handle tokens as they're managed by cookies
+    return await response.json();
   } catch (error) {
-    if (error instanceof Error && error.message === "Failed to refresh token") {
-      logout();
-      throw new Error("Session expired. Please log in again.");
-    }
+    console.error("Token refresh error:", error);
     throw error;
   }
 }
+
+export async function logout() {
+  try {
+    cookies().delete("accessToken");
+    cookies().delete("refreshToken");
+  } catch (error) {
+    console.error("Logout error:", error);
+    // Still clear cache even if server logout fails
+    throw error;
+  }
+}
+
+export const getAccessToken = async () => {
+  const accessToken = await cookies().get("accessToken");
+  if (!accessToken) {
+    return null;
+  }
+  return accessToken.value;
+};

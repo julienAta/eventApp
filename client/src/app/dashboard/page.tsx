@@ -1,4 +1,5 @@
 import Dashboard from "@/components/dashboard";
+import { getUser } from "@/lib/authService";
 import { supabase } from "@/lib/supabase";
 import { Event } from "@/types/event";
 
@@ -16,5 +17,6 @@ async function getEvents(): Promise<Event[]> {
 
 export default async function DashboardPage() {
   const events = await getEvents();
-  return <Dashboard events={events} />;
+  const user = await getUser();
+  return <Dashboard events={events} user={user} />;
 }

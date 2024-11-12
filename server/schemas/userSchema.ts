@@ -6,11 +6,15 @@ export const UserSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
   role: z.string().default("default"),
+  created_at: z.string().optional(),
+  updated_at: z.string().optional(),
 });
 
-export const NewUserSchema = UserSchema.omit({ id: true });
-export const UpdateUserSchema = NewUserSchema.partial();
+export const NewUserSchema = z.object({
+  name: z.string().min(1),
+  email: z.string().email(),
+  password: z.string().min(6),
+  role: z.string().default("default"),
+});
 
-export type User = z.infer<typeof UserSchema>;
-export type NewUser = z.infer<typeof NewUserSchema>;
-export type UpdateUser = z.infer<typeof UpdateUserSchema>;
+export const UpdateUserSchema = NewUserSchema.partial();

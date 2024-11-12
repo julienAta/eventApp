@@ -1,6 +1,3 @@
-"use client";
-
-import { useState, useEffect } from "react";
 import { Event } from "@/types/event";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,8 +10,6 @@ import {
 } from "lucide-react";
 import { Spinner } from "@/components/spinner";
 import Link from "next/link";
-import { getUser } from "@/lib/authService";
-import { get } from "http";
 interface DashboardStats {
   totalEvents: number;
   upcomingEvents: number;
@@ -22,50 +17,16 @@ interface DashboardStats {
   averageParticipants: number;
 }
 
-export default function Dashboard({ events }: { events: Event[] }) {
-  const [userEvents, setUserEvents] = useState<Event[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+export default function Dashboard({
+  events,
+  user,
+}: {
+  events: Event[];
+  user: any;
+}) {
+  const filteredEvents = events.filter((event) => event.creator_id === user.id);
 
-  useEffect(() => {
-    async function fetchUserEvents() {
-      try {
-        const userData = await getUser();
-        if (!userData) {
-          setUserEvents([]);
-          return;
-        }
-        console.log(userData, "userData");
-
-        const filteredEvents = events.filter(
-          (event) => event.creator_id === userData.id
-        );
-
-        setUserEvents(filteredEvents);
-      } catch (error) {
-        console.error("Error fetching user events:", error);
-        setUserEvents([]);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchUserEvents();
-  }, [events]);
-
-  if (isLoading) {
-    return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <div className="flex flex-col items-center gap-2">
-          <Spinner />
-          <p className="text-sm text-muted-foreground">
-            Loading your events...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  const stats: DashboardStats = userEvents.reduce(
+  const stats: DashboardStats = filteredEvents.reduce(
     (acc, event) => {
       const now = new Date();
       const eventDate = new Date(event.date);
@@ -89,7 +50,7 @@ export default function Dashboard({ events }: { events: Event[] }) {
     }
   );
 
-  if (!userEvents.length) {
+  if (!filteredEvents.length) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
         <div className="text-center">
@@ -174,7 +135,7 @@ export default function Dashboard({ events }: { events: Event[] }) {
         </TabsList>
 
         <TabsContent value="upcoming" className="space-y-4">
-          {userEvents
+          {filteredEvents
             .filter((event) => new Date(event.date) > new Date())
             .map((event) => (
               <EventCard key={event.id} event={event} />
@@ -182,7 +143,7 @@ export default function Dashboard({ events }: { events: Event[] }) {
         </TabsContent>
 
         <TabsContent value="past" className="space-y-4">
-          {userEvents
+          {filteredEvents
             .filter((event) => new Date(event.date) <= new Date())
             .map((event) => (
               <EventCard key={event.id} event={event} />

@@ -7,38 +7,46 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { signIn, signUp } from "@/lib/authService";
+import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react"; // Import loading icon
 
 export function AuthPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     try {
-      const data = await signIn(email, password);
-      localStorage.setItem("accessToken", data.accessToken);
-      localStorage.setItem("refreshToken", data.refreshToken);
+      await signIn(email, password);
       window.location.replace("/");
     } catch (err) {
       setError("Failed to sign in. Please check your credentials.");
     }
   };
-
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setIsLoading(true);
+
     try {
       await signUp(name, email, password);
-      const data = await signIn(email, password);
-      localStorage.setItem("accessToken", data.accessToken);
-      localStorage.setItem("refreshToken", data.refreshToken);
-      window.location.replace("/");
+      await signIn(email, password);
+      router.push("/");
     } catch (err) {
-      setError("Failed to sign up. Please try again.");
+      console.error("Sign up error:", err);
+      if (err instanceof Error) {
+        setError(err.message || "Failed to sign up. Please try again.");
+      } else {
+        setError("Failed to sign up. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -47,15 +55,15 @@ export function AuthPage() {
       <div className="container grid items-center gap-6 px-4 md:px-6 md:grid-cols-2">
         <div className="space-y-4 text-center md:text-left">
           <h1 className="text-3xl font-bold tracking-tighter md:text-5xl">
-            Welcome to Event Manager
+            Welcome to JUNBI
           </h1>
           <p className="max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-            Event Manager is a simple event management app built with Next.js.
-            It allows you to create, update, and delete events, as well as
-            manage user accounts.
+            JUNBI is your comprehensive event management platform. Create,
+            organize, and manage events with ease while keeping your
+            participants connected and informed.
           </p>
         </div>
-        <div className="mx-auto max-w-md">
+        <div className="mx-auto max-w-md w-full">
           <Tabs
             defaultValue="signin"
             className="w-full"
@@ -67,85 +75,114 @@ export function AuthPage() {
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
             </TabsList>
             <TabsContent value="signin">
-              <Card className="p-5">
+              <Card>
                 <form onSubmit={handleSignIn}>
-                  <CardContent className="grid gap-4">
+                  <CardContent className="grid gap-4 pt-6">
                     <div className="grid gap-2">
-                      <Label htmlFor="email">Email</Label>
+                      <Label htmlFor="signin-email">Email</Label>
                       <Input
-                        id="email"
+                        id="signin-email"
                         type="email"
                         placeholder="m@example.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
+                        disabled={isLoading}
                         required
                       />
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="password">Password</Label>
+                      <Label htmlFor="signin-password">Password</Label>
                       <Input
-                        id="password"
+                        id="signin-password"
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        disabled={isLoading}
                         required
                       />
                     </div>
                   </CardContent>
                   <CardFooter>
-                    <Button className="w-full" type="submit">
-                      Sign In
+                    <Button
+                      className="w-full"
+                      type="submit"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Signing in...
+                        </>
+                      ) : (
+                        "Sign In"
+                      )}
                     </Button>
                   </CardFooter>
                 </form>
               </Card>
             </TabsContent>
             <TabsContent value="signup">
-              <Card className="p-5">
+              <Card>
                 <form onSubmit={handleSignUp}>
-                  <CardContent className="grid gap-4">
+                  <CardContent className="grid gap-4 pt-6">
                     <div className="grid gap-2">
-                      <Label htmlFor="name">Name</Label>
+                      <Label htmlFor="signup-name">Name</Label>
                       <Input
-                        id="name"
-                        placeholder="Jared Palmer"
+                        id="signup-name"
+                        placeholder="John Doe"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
+                        disabled={isLoading}
                         required
                       />
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="email">Email</Label>
+                      <Label htmlFor="signup-email">Email</Label>
                       <Input
-                        id="email"
+                        id="signup-email"
                         type="email"
                         placeholder="m@example.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
+                        disabled={isLoading}
                         required
                       />
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="password">Password</Label>
+                      <Label htmlFor="signup-password">Password</Label>
                       <Input
-                        id="password"
+                        id="signup-password"
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        disabled={isLoading}
                         required
                       />
                     </div>
                   </CardContent>
                   <CardFooter>
-                    <Button className="w-full" type="submit">
-                      Sign Up
+                    <Button
+                      className="w-full"
+                      type="submit"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Creating account...
+                        </>
+                      ) : (
+                        "Create Account"
+                      )}
                     </Button>
                   </CardFooter>
                 </form>
               </Card>
             </TabsContent>
           </Tabs>
-          {error && <p className="text-red-500 mt-4">{error}</p>}
+          {error && (
+            <p className="text-destructive mt-4 text-sm text-center">{error}</p>
+          )}
         </div>
       </div>
     </section>

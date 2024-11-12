@@ -5,9 +5,9 @@ import { Spinner } from "@/components/spinner";
 export default async function EditEventPage({
   params,
 }: {
-  params: { id: string };
+  params: { id: number };
 }) {
-  const id = parseInt(params.id, 10);
+  const id = params.id;
   const event = await fetchEvent(id);
 
   if (!event) {

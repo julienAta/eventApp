@@ -5,7 +5,6 @@ import { Navbar } from "@/components/navbar";
 import { Toaster } from "@/components/ui/sonner";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
-import { AuthWrapper } from "@/components/AuthWrapper";
 
 export const metadata: Metadata = {
   title: "JUNBI",
@@ -21,13 +20,11 @@ export default function RootLayout({
     <ReactQueryProvider>
       <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
         <body className={GeistMono.className}>
-          <AuthWrapper>
-            <main>
-              <Navbar />
-              {children}
-            </main>
-            <Toaster />
-          </AuthWrapper>
+          <main>
+            <Navbar />
+            {children}
+          </main>
+          <Toaster />
         </body>
       </html>
     </ReactQueryProvider>
