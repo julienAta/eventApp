@@ -30,9 +30,10 @@ interface EventFormProps {
   };
   formType: "Create" | "Edit";
   user: any;
+  token: any;
 }
 
-const EventForm: FC<EventFormProps> = ({ event, formType, user }) => {
+const EventForm: FC<EventFormProps> = ({ event, formType, user, token }) => {
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
   const [isLoading, setIsLoading] = useState(false);
   const [title, setTitle] = useState(event?.title || "");
@@ -105,7 +106,6 @@ const EventForm: FC<EventFormProps> = ({ event, formType, user }) => {
     setIsLoading(true);
 
     try {
-      const token = localStorage.getItem("accessToken");
       if (!token) {
         throw new Error("No authentication token found");
       }

@@ -7,7 +7,7 @@ interface UserJwtPayload extends JwtPayload {
 
 export const socketAuth = (socket: Socket, next: (err?: Error) => void) => {
   const token = socket.handshake.auth.token;
-
+  logger.info("token", token);
   if (!token) {
     logger.warn("Socket connection attempt without token", {
       socketId: socket.id,

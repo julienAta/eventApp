@@ -19,12 +19,12 @@ interface ChatProps {
     id: string;
     name: string;
   };
-  accessToken: string;
+  token: string;
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
-export function Chat({ eventId, currentUser, accessToken }: ChatProps) {
+export function Chat({ eventId, currentUser, token }: ChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -43,17 +43,17 @@ export function Chat({ eventId, currentUser, accessToken }: ChatProps) {
   // Initialize socket connection
   useEffect(() => {
     let socketInstance: Socket | null = null;
-    console.log(accessToken, "accessToken,,");
+    console.log(token, "token,,");
 
     const connectSocket = () => {
       try {
-        if (!accessToken) {
+        if (!token) {
           return;
         }
 
         socketInstance = io(API_URL, {
           auth: {
-            accessToken,
+            token,
           },
           transports: ["websocket", "polling"],
           reconnectionAttempts: maxReconnectAttempts,
@@ -104,15 +104,15 @@ export function Chat({ eventId, currentUser, accessToken }: ChatProps) {
       try {
         setIsLoading(true);
 
-        if (!accessToken) {
-          throw new Error("No authentication accessToken found");
+        if (!token) {
+          throw new Error("No authentication token found");
         }
 
         const response = await fetch(
           `${API_URL}/api/chat/${eventId}/messages`,
           {
             headers: {
-              Authorization: `Bearer ${accessToken}`,
+              Authorization: `Bearer ${token}`,
             },
           }
         );

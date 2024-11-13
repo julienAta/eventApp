@@ -19,6 +19,7 @@ export const initializeSocketIO = (server: any) => {
   io.use(async (socket, next) => {
     try {
       const token = socket.handshake.auth.token;
+      logger.info("token", token);
       if (!token) {
         logger.warn("Authentication error: Token required");
         return next(new Error("Authentication error: Token required"));

@@ -70,7 +70,7 @@ export default async function EventDetailPage({
           <>
             <div className="w-full md:w-1/2 px-4 mb-8 md:mb-0">
               <Chat
-                accessToken={accessToken}
+                token={accessToken}
                 eventId={params.id}
                 currentUser={user}
               />
