@@ -5,7 +5,7 @@ import { Navbar } from "@/components/navbar";
 import { Toaster } from "@/components/ui/sonner";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
-import { getUser } from "@/lib/authService";
+import { getUser } from "@/lib/auth-service";
 
 export const metadata: Metadata = {
   title: "JUNBI",

@@ -5,12 +5,6 @@ import { logger } from "../utils/logger";
 
 export const addUser = async (user: NewUser): Promise<User> => {
   try {
-    console.log("Attempting to add user:", {
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    });
-
     const hashedPassword = await argon2.hash(user.password);
 
     const { data, error } = await supabase
@@ -29,7 +23,6 @@ export const addUser = async (user: NewUser): Promise<User> => {
       throw error;
     }
 
-    console.log("User added successfully:", data);
     return data as User;
   } catch (error) {
     console.error("Error in addUser:", {

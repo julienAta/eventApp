@@ -1,13 +1,13 @@
 import { EventDetail } from "@/components/event-detail";
 import { Chat } from "@/components/chat";
 import { Spinner } from "@/components/spinner";
-import ExpenseManager from "@/components/ExpenseManager";
+import ExpenseManager from "@/components/expense-manager";
 import { useRouter } from "next/navigation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/lib/supabase";
 import { Event } from "@/types/event";
-import { getUser } from "@/lib/authService";
-import { getAccessToken } from "@/lib/authService";
+import { getUser } from "@/lib/auth-service";
+import { getAccessToken } from "@/lib/auth-service";
 
 async function getEvent(id: number): Promise<Event> {
   try {
@@ -25,7 +25,6 @@ async function getEvent(id: number): Promise<Event> {
       throw new Error("Event not found");
     }
 
-    console.log("Fetched event data:", data);
     return data;
   } catch (error) {
     console.error("Error fetching event:", error);

@@ -6,7 +6,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { signIn, signUp } from "@/lib/authService";
+import { signIn, signUp } from "@/lib/auth-service";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react"; // Import loading icon
 
@@ -24,7 +24,7 @@ export function AuthPage() {
     setError("");
     try {
       await signIn(email, password);
-      window.location.replace("/");
+      router.push("/");
     } catch (err) {
       setError("Failed to sign in. Please check your credentials.");
     }

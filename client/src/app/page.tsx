@@ -1,5 +1,5 @@
 import MarketingClient from "@/components/marketing-client";
-import { getUser } from "@/lib/authService";
+import { getUser } from "@/lib/auth-service";
 
 export default async function Home() {
   const user = await getUser();

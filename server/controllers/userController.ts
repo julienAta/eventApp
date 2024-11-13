@@ -105,22 +105,9 @@ export const createUser = async (
   res: Response
 ): Promise<void> => {
   try {
-    console.log("Request body:", {
-      ...req.body,
-      password: "[REDACTED]",
-    });
-
     const newUser = NewUserSchema.parse(req.body);
-    console.log("Parsed user data:", {
-      ...newUser,
-      password: "[REDACTED]",
-    });
 
     const createdUser = await userModel.addUser(newUser);
-    console.log("Created user:", {
-      ...createdUser,
-      password: "[REDACTED]",
-    });
 
     const validatedUser = UserSchema.parse(createdUser);
 

@@ -43,7 +43,6 @@ export function Chat({ eventId, currentUser, token }: ChatProps) {
   // Initialize socket connection
   useEffect(() => {
     let socketInstance: Socket | null = null;
-    console.log(token, "token,,");
 
     const connectSocket = () => {
       try {
@@ -60,7 +59,6 @@ export function Chat({ eventId, currentUser, token }: ChatProps) {
         });
 
         socketInstance.on("connect", () => {
-          console.log("Connected to chat server");
           setIsConnected(true);
           reconnectAttempts.current = 0;
           socketInstance?.emit("join_room", eventId.toString());
@@ -138,10 +136,6 @@ export function Chat({ eventId, currentUser, token }: ChatProps) {
     if (!newMessage.trim() || !socket || !isConnected) return;
 
     try {
-      console.log("Sending message:", newMessage);
-      console.log("Event ID:", eventId);
-      console.log("User ID:", currentUser.id);
-
       socket.emit("chat_message", {
         content: newMessage.trim(),
         event_id: eventId,

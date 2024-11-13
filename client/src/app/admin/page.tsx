@@ -1,6 +1,5 @@
-import React from "react";
 import AdminDashboard from "@/components/admin-dashboard";
-import { getUser } from "@/lib/authService";
+import { getUser } from "@/lib/auth-service";
 async function AdminPage() {
   const user = await getUser();
   if (!user) return <div>You are not authorized to access this page</div>;

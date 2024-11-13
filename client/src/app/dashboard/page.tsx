@@ -1,5 +1,5 @@
 import Dashboard from "@/components/dashboard";
-import { getUser } from "@/lib/authService";
+import { getUser } from "@/lib/auth-service";
 import { supabase } from "@/lib/supabase";
 import { Event } from "@/types/event";
 

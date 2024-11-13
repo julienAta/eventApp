@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { logout, getUser, refreshToken } from "@/lib/authService";
+import { logout, getUser, refreshToken } from "@/lib/auth-service";
 import { Menu } from "lucide-react"; // Using lucide icon instead of raw SVG
 
 interface User {

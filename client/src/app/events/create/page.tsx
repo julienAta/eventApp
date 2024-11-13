@@ -1,5 +1,5 @@
-import EventForm from "@/components/EventForm";
-import { getUser } from "@/lib/authService";
+import EventForm from "@/components/event-form";
+import { getUser } from "@/lib/auth-service";
 import { cookies } from "next/headers";
 
 const CreateEventPage = async () => {
