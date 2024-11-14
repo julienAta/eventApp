@@ -1,14 +1,13 @@
 {
-  "name": "eventapp",
+  "name": "junbi",
   "private": true,
   "version": "1.0.0",
   "scripts": {
     "start:server": "pnpm --filter server start",
     "start:client": "pnpm --filter client dev",
-    "start": "concurrently \"pnpm --filter server start\" \"pnpm --filter client dev\"",
+    "dev": "concurrently \"pnpm --filter server start\" \"pnpm --filter client dev\"",
     "build": "pnpm --filter client build",
-    "start-prod": "concurrently \"pnpm --filter server start\" \"pnpm --filter client start\"",
-    "install-all": "concurrently \"pnpm --filter server install\" \"pnpm --filter client install\" \"pnpm install\""
+    "start": "concurrently \"pnpm --filter server start\" \"pnpm --filter client start\""
   },
   "workspaces": [
     "server",

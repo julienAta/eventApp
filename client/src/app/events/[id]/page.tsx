@@ -1,8 +1,6 @@
 import { EventDetail } from "@/components/event-detail";
 import { Chat } from "@/components/chat";
-import { Spinner } from "@/components/spinner";
 import ExpenseManager from "@/components/expense-manager";
-import { useRouter } from "next/navigation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/lib/supabase";
 import { Event } from "@/types/event";

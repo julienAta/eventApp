@@ -15,7 +15,6 @@ interface User {
 
 export function Navbar({ user }: { user: User }) {
   const router = useRouter();
-  console.log(user, "user");
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
