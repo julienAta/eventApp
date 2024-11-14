@@ -17,10 +17,8 @@ const customColors = {
   debug: "white",
 };
 
-// Add colors to Winston
 winston.addColors(customColors);
 
-// Create a custom format for console output
 const consoleFormat = winston.format.combine(
   winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
   winston.format.colorize({ all: true }),
@@ -46,7 +44,6 @@ export const logger = winston.createLogger({
   ],
 });
 
-// If we're not in production, log to the console with the custom format
 if (process.env.NODE_ENV !== "production") {
   logger.add(
     new winston.transports.Console({
@@ -55,7 +52,6 @@ if (process.env.NODE_ENV !== "production") {
   );
 }
 
-// Optional: Create convenience methods for logging
 export const logInfo = (message: string, meta?: any) =>
   logger.info(message, meta);
 export const logError = (message: string, meta?: any) =>

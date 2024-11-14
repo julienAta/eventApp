@@ -1,4 +1,3 @@
-// hooks/useEventForm.ts
 import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";

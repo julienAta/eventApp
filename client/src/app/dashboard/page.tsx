@@ -1,3 +1,4 @@
+export const revalidate = 0;
 import Dashboard from "@/components/dashboard";
 import { getUser } from "@/lib/auth-service";
 import { supabase } from "@/lib/supabase";

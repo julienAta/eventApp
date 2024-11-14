@@ -43,5 +43,3 @@ export const handleJoinRoom = (socket: Socket, roomId: string) => {
   socket.join(roomId);
   logger.info(`Socket joined room`, { socketId: socket.id, roomId });
 };
-
-// Add other event handlers as needed

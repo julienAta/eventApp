@@ -3,15 +3,14 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { logout, getUser, refreshToken } from "@/lib/auth-service";
-import { Menu } from "lucide-react"; // Using lucide icon instead of raw SVG
+import { Menu } from "lucide-react";
 
 interface User {
   id: string;
   email: string;
   role: string;
-  // Add other user properties
 }
 
 export function Navbar({ user }: { user: User }) {
@@ -37,7 +36,6 @@ export function Navbar({ user }: { user: User }) {
         <span className="text-lg font-semibold">JUNBI</span>
       </Link>
 
-      {/* Desktop Navigation */}
       <nav className="ml-auto hidden md:flex items-center gap-6">
         {user && (
           <>
@@ -87,7 +85,6 @@ export function Navbar({ user }: { user: User }) {
         )}
       </nav>
 
-      {/* Mobile Menu Button */}
       <div className="ml-auto md:hidden">
         <Button variant="ghost" size="icon" onClick={toggleMenu}>
           <Menu
@@ -98,7 +95,6 @@ export function Navbar({ user }: { user: User }) {
         </Button>
       </div>
 
-      {/* Mobile Navigation */}
       {isMenuOpen && (
         <div className="absolute top-full left-0 w-full bg-background border-b shadow-lg animate-in slide-in-from-top duration-200">
           <nav className="flex flex-col p-4 gap-4">

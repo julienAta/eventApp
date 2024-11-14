@@ -8,7 +8,6 @@ import {
   ArrowUpRight,
   ArrowDownRight,
 } from "lucide-react";
-import { Spinner } from "@/components/spinner";
 import Link from "next/link";
 interface DashboardStats {
   totalEvents: number;

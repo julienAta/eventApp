@@ -14,7 +14,6 @@ if (!supabaseUrl || !supabaseKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Expose the raw connection for Drizzle
 const connectionString = `${supabaseUrl}?apikey=${supabaseKey}`;
 export const queryClient = postgres(connectionString);
 export const db: PostgresJsDatabase = drizzle(queryClient);

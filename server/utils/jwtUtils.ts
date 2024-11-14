@@ -2,7 +2,6 @@ import jwt from "jsonwebtoken";
 import { User, TokenPayload } from "../types/userTypes";
 import { logger } from "../utils/logger";
 
-// Environment variables validation
 if (!process.env.JWT_SECRET || !process.env.REFRESH_TOKEN_SECRET) {
   throw new Error(
     "JWT_SECRET and REFRESH_TOKEN_SECRET must be defined in environment variables"

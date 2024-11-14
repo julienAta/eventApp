@@ -56,9 +56,7 @@ interface FilterState {
   sortOrder: SortOrder;
 }
 
-// Component
 export function EventList({ events: initialEvents }: EventListProps) {
-  // State with proper typing
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [filters, setFilters] = useState<FilterState>({
     search: "",
@@ -66,7 +64,6 @@ export function EventList({ events: initialEvents }: EventListProps) {
     sortOrder: "asc",
   });
 
-  // Query with proper typing
   const { data: events } = useQuery<Event[], Error>({
     queryFn: () => fetchEvents(),
     queryKey: ["events"],
@@ -74,12 +71,10 @@ export function EventList({ events: initialEvents }: EventListProps) {
     staleTime: 0,
   });
 
-  // Derived state with proper typing
   const categories: string[] = Array.from(
     new Set(events.map((event) => event.category))
   );
 
-  // Filtering logic with proper typing
   const filteredEvents: Event[] = events
     .filter((event) => {
       const matchesSearch = event.title
@@ -96,7 +91,6 @@ export function EventList({ events: initialEvents }: EventListProps) {
       return filters.sortOrder === "asc" ? dateA - dateB : dateB - dateA;
     });
 
-  // Update filter handlers with proper typing
   const updateSearch = (search: string) => {
     setFilters((prev) => ({ ...prev, search }));
   };
@@ -114,7 +108,6 @@ export function EventList({ events: initialEvents }: EventListProps) {
     setFilters((prev) => ({ ...prev, sortOrder }));
   };
 
-  // View components with proper typing
   const EventGridView = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {filteredEvents.map((event) => (
@@ -200,7 +193,6 @@ export function EventList({ events: initialEvents }: EventListProps) {
 
   return (
     <div className="space-y-6">
-      {/* Filters and Controls */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1 flex gap-4">
           <div className="relative flex-1">
@@ -268,7 +260,6 @@ export function EventList({ events: initialEvents }: EventListProps) {
         </div>
       </div>
 
-      {/* Event List */}
       {filteredEvents.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-muted-foreground">

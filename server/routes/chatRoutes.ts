@@ -5,7 +5,6 @@ import { authenticateJWT } from "../middlewares/authMiddleware";
 
 const chatRouter = Router();
 
-// Add authentication middleware
 chatRouter.get("/:eventId/messages", authenticateJWT, async (req, res) => {
   try {
     const { eventId } = req.params;

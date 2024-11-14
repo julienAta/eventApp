@@ -1,6 +1,5 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import * as chatModel from "../models/chatModel.js";
-import { EventEmitter } from "events";
 import { logger } from "../utils/logger";
 
 export const getChatMessages = async (

@@ -3,7 +3,6 @@ import { supabase } from "../../supabase/supabaseClient";
 import * as argon2 from "argon2";
 import { logger } from "../../utils/logger";
 
-// Mock Supabase
 jest.mock("../../supabase/supabaseClient", () => ({
   supabase: {
     from: jest.fn((table: string) => ({
@@ -38,12 +37,10 @@ jest.mock("../../supabase/supabaseClient", () => ({
   },
 }));
 
-// Mock argon2
 jest.mock("argon2", () => ({
   hash: jest.fn().mockResolvedValue("hashedPassword"),
 }));
 
-// Mock logger
 jest.mock("../../utils/logger", () => ({
   logger: {
     info: jest.fn(),
@@ -261,6 +258,4 @@ describe("User Model Tests", () => {
       expect(logger.error).toHaveBeenCalled();
     });
   });
-
-  // Add tests for validateRefreshToken, replaceRefreshToken, and deleteRefreshToken here
 });

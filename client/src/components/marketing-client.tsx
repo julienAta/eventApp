@@ -118,7 +118,6 @@ export default function MarketingClient({ isAuth }: { isAuth: boolean }) {
 
   return (
     <main className="min-h-screen bg-background">
-      {/* Hero Section */}
       <section className="relative min-h-[calc(100vh-8rem)] flex items-center justify-center py-32">
         <motion.div
           className="container mx-auto px-4 text-center"
@@ -173,7 +172,6 @@ export default function MarketingClient({ isAuth }: { isAuth: boolean }) {
         </motion.div>
       </section>
 
-      {/* Features Section */}
       <section className="py-32 bg-muted/50">
         <div className="container mx-auto px-4">
           <motion.h2
@@ -212,7 +210,6 @@ export default function MarketingClient({ isAuth }: { isAuth: boolean }) {
         </div>
       </section>
 
-      {/* Tech Stack Section */}
       <section className="py-32">
         <div className="container mx-auto px-4">
           <motion.div
@@ -271,7 +268,6 @@ export default function MarketingClient({ isAuth }: { isAuth: boolean }) {
         </div>
       </section>
 
-      {/* Project Overview */}
       <section className="py-32 bg-muted/50">
         <div className="container mx-auto px-4">
           <motion.div
@@ -332,7 +328,6 @@ export default function MarketingClient({ isAuth }: { isAuth: boolean }) {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="py-32 bg-primary text-primary-foreground">
         <motion.div
           className="container mx-auto px-4 text-center"

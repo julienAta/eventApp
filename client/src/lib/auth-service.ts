@@ -27,7 +27,6 @@ export async function signIn(email: string, password: string) {
     const token = data.accessToken;
     const refreshToken = data.refreshToken;
 
-    // Store user data in cookies
     cookies().set("accessToken", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -40,7 +39,6 @@ export async function signIn(email: string, password: string) {
       sameSite: "lax" as const,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
-    // Store user data in cache
     return data.user;
   } catch (error) {
     console.error("Sign in error:", error);
@@ -63,7 +61,6 @@ export async function signUp(name: string, email: string, password: string) {
     role: "default",
   };
 
-  // In console or test file
   const response = await fetch("http://localhost:3000/api/users/register", {
     method: "POST",
     headers: {
@@ -114,7 +111,6 @@ export async function refreshToken() {
       throw new Error("Failed to refresh token");
     }
 
-    // No need to handle tokens as they're managed by cookies
     return await response.json();
   } catch (error) {
     console.error("Token refresh error:", error);
@@ -128,7 +124,6 @@ export async function logout() {
     cookies().delete("refreshToken");
   } catch (error) {
     console.error("Logout error:", error);
-    // Still clear cache even if server logout fails
     throw error;
   }
 }

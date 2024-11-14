@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { logger } from "../utils/logger";
 
-// Make sure JWT_SECRET is properly typed and validated
 if (!process.env.JWT_SECRET) {
   logger.error("JWT_SECRET is not defined in environment variables");
   throw new Error("JWT_SECRET must be defined");
@@ -10,7 +9,6 @@ if (!process.env.JWT_SECRET) {
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-// Define the payload type
 interface UserPayload {
   id: string;
   email: string;
@@ -37,10 +35,8 @@ export const authenticateJWT = (
       return res.status(401).json({ message: "No token provided" });
     }
 
-    // Add type assertion to tell TypeScript this is a UserPayload
     const decoded = jwt.verify(token, JWT_SECRET) as UserPayload;
 
-    // Validate the decoded payload
     if (!decoded || !decoded.id || !decoded.email) {
       return res.status(403).json({ message: "Invalid token payload" });
     }

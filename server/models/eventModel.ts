@@ -1,4 +1,3 @@
-import { log } from "winston";
 import { supabase } from "../supabase/supabaseClient.js";
 import { Event, NewEvent } from "../types/eventTypes.js";
 import { getExpensesByEventId } from "./expenseModel.js";

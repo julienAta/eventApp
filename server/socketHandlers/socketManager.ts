@@ -5,17 +5,16 @@ import { logger } from "../utils/logger";
 
 export const initializeSocketIO = (server: any) => {
   const io = new Server(server, {
-    path: "/socket.io/", // Explicit path
+    path: "/socket.io/",
     cors: {
       origin: process.env.FRONTEND_URL || "http://localhost:3000",
       methods: ["GET", "POST"],
       credentials: true,
       allowedHeaders: ["Authorization", "Content-Type"],
     },
-    transports: ["websocket", "polling"], // Enable both WebSocket and polling
+    transports: ["websocket", "polling"],
   });
 
-  // Socket authentication middleware
   io.use(async (socket, next) => {
     try {
       const token = socket.handshake.auth.token;
@@ -41,7 +40,6 @@ export const initializeSocketIO = (server: any) => {
     socket.on("join_room", (eventId: string) => {
       logger.info(`Socket ${socket.id} joining room ${eventId}`);
       socket.join(eventId);
-      // Send confirmation back to client
       socket.emit("room_joined", { eventId });
     });
 
