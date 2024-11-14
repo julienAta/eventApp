@@ -40,7 +40,6 @@ export default function AdminDashboard({ user }: { user: any }) {
       setLoading(true);
       setError(null);
 
-      // Fetch users
       const { data: usersData, error: usersError } = await supabase
         .from("users")
         .select("*")
@@ -49,7 +48,6 @@ export default function AdminDashboard({ user }: { user: any }) {
       if (usersError)
         throw new Error("Failed to fetch users: " + usersError.message);
 
-      // Fetch events
       const { data: eventsData, error: eventsError } = await supabase
         .from("events")
         .select("*")
@@ -58,7 +56,6 @@ export default function AdminDashboard({ user }: { user: any }) {
       if (eventsError)
         throw new Error("Failed to fetch events: " + eventsError.message);
 
-      // Fetch messages
       const { data: messagesData, error: messagesError } = await supabase
         .from("chat_messages")
         .select("*")
@@ -67,7 +64,6 @@ export default function AdminDashboard({ user }: { user: any }) {
       if (messagesError)
         throw new Error("Failed to fetch messages: " + messagesError.message);
 
-      // Update state
       setUsers(usersData || []);
       setEvents(eventsData || []);
       setMessages(messagesData || []);

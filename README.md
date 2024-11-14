@@ -85,7 +85,7 @@ eventApp/
 
 ## 🔐 Environment Variables
 
-Required environment variables (found in `livrables/env-variables.txt`):
+Required environment variables (found in `envs.txt`):
 
 - Database configuration
 - API keys
@@ -123,8 +123,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-
-
-
 ---
-
