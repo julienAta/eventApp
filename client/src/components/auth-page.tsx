@@ -6,49 +6,19 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { signIn, signUp } from "@/lib/auth-service";
-import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react"; // Import loading icon
+import { Loader2 } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth-form";
 
 export function AuthPage() {
-  const router = useRouter();
   const [activeTab, setActiveTab] = useState("signin");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    try {
-      await signIn(email, password);
-      router.push("/");
-    } catch (err) {
-      setError("Failed to sign in. Please check your credentials.");
-    }
-  };
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setIsLoading(true);
-
-    try {
-      await signUp(name, email, password);
-      await signIn(email, password);
-      router.push("/");
-    } catch (err) {
-      console.error("Sign up error:", err);
-      if (err instanceof Error) {
-        setError(err.message || "Failed to sign up. Please try again.");
-      } else {
-        setError("Failed to sign up. Please try again.");
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const {
+    state: { email, password, name, error, isLoading },
+    handleSignIn,
+    handleSignUp,
+    setEmail,
+    setPassword,
+    setName,
+  } = useAuth();
 
   return (
     <section className="w-full py-12 md:py-24 lg:py-32">

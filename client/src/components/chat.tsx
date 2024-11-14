@@ -1,9 +1,10 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
-import { io, Socket } from "socket.io-client";
+import React, { useCallback } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useSocket } from "@/hooks/use-socket";
+import { useChatMessages } from "@/hooks/use-chat-messages";
 
 interface ChatMessage {
   id: string;
@@ -22,142 +23,37 @@ interface ChatProps {
   token: string;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-
 export function Chat({ eventId, currentUser, token }: ChatProps) {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [newMessage, setNewMessage] = useState("");
-  const [socket, setSocket] = useState<Socket | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const reconnectAttempts = useRef(0);
-  const maxReconnectAttempts = 5;
-
-  const scrollToBottom = () => {
+  const handleNewMessage = useCallback((message: ChatMessage) => {
+    setMessages((prev) => [...prev, message]);
     if (scrollRef.current) {
       scrollRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  };
+  }, []);
 
-  // Initialize socket connection
-  useEffect(() => {
-    let socketInstance: Socket | null = null;
+  const { socket, isConnected } = useSocket({
+    token,
+    eventId,
+    onNewMessage: handleNewMessage,
+  });
 
-    const connectSocket = () => {
-      try {
-        if (!token) {
-          return;
-        }
-
-        socketInstance = io(API_URL, {
-          auth: {
-            token,
-          },
-          transports: ["websocket", "polling"],
-          reconnectionAttempts: maxReconnectAttempts,
-        });
-
-        socketInstance.on("connect", () => {
-          setIsConnected(true);
-          reconnectAttempts.current = 0;
-          socketInstance?.emit("join_room", eventId.toString());
-        });
-
-        socketInstance.on("connect_error", (error) => {
-          console.error("Connection error:", error);
-          setIsConnected(false);
-          reconnectAttempts.current++;
-
-          if (reconnectAttempts.current >= maxReconnectAttempts) {
-          }
-        });
-
-        socketInstance.on("new_message", (message: ChatMessage) => {
-          setMessages((prev) => [...prev, message]);
-          scrollToBottom();
-        });
-
-        setSocket(socketInstance);
-      } catch (error) {
-        console.error("Socket initialization error:", error);
-      }
-    };
-
-    connectSocket();
-
-    return () => {
-      if (socketInstance) {
-        socketInstance.off("connect");
-        socketInstance.off("disconnect");
-        socketInstance.off("new_message");
-        socketInstance.disconnect();
-      }
-    };
-  }, [eventId]);
-
-  // Fetch message history
-  useEffect(() => {
-    const fetchMessages = async () => {
-      try {
-        setIsLoading(true);
-
-        if (!token) {
-          throw new Error("No authentication token found");
-        }
-
-        const response = await fetch(
-          `${API_URL}/api/chat/${eventId}/messages`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        setMessages(data.messages || []);
-        scrollToBottom();
-      } catch (error) {
-        console.error("Error fetching messages:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchMessages();
-  }, [eventId]);
-
-  const handleSendMessage = async () => {
-    if (!newMessage.trim() || !socket || !isConnected) return;
-
-    try {
-      socket.emit("chat_message", {
-        content: newMessage.trim(),
-        event_id: eventId,
-        user_id: currentUser.id,
-      });
-
-      setNewMessage("");
-    } catch (error) {
-      console.error("Error sending message:", error);
-    }
-  };
-
-  const formatTime = (dateString: string) => {
-    return new Date(dateString).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const isCurrentUserMessage = (message: ChatMessage) => {
-    return message.user_id === currentUser.id;
-  };
+  const {
+    messages,
+    setMessages,
+    newMessage,
+    isLoading,
+    scrollRef,
+    setNewMessage,
+    handleSendMessage,
+    formatTime,
+    isCurrentUserMessage,
+  } = useChatMessages({
+    eventId,
+    token,
+    currentUserId: currentUser.id,
+    socket,
+    isConnected,
+  });
 
   if (isLoading) {
     return (

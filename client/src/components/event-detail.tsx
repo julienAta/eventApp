@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   CalendarIcon,
@@ -30,13 +29,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { Event } from "@/types/event";
-import { supabase } from "@/lib/supabase";
-
+import { useEventManagement } from "@/hooks/use-event-management";
+import { useEventHelpers } from "@/hooks/use-event-helper";
 interface User {
   id: string;
   name: string;
@@ -49,127 +45,23 @@ interface EventDetailProps {
 }
 
 export function EventDetail({ event, currentUser }: EventDetailProps) {
-  const router = useRouter();
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isJoining, setIsJoining] = useState(false);
-  const isParticipant = event.users?.includes(currentUser.id) || false;
-  const participantsCount = event.users?.length || 0;
-  const isCreator = event.creator_id === currentUser.id;
-  const hasSpaceLeft = true;
-  const eventDate = new Date(event.date);
-  const isUpcoming = eventDate > new Date();
+  const {
+    state: { isDeleting, isJoining },
+    handleDelete,
+    handleJoinEvent,
+    handleUnjoinEvent,
+    handleShare,
+  } = useEventManagement(event, currentUser);
 
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "numeric",
-      minute: "numeric",
-    }).format(date);
-  };
-
-  const handleDelete = async () => {
-    try {
-      setIsDeleting(true);
-      const { error } = await supabase
-        .from("events")
-        .delete()
-        .eq("id", event.id);
-
-      if (error) throw error;
-
-      toast.success("Event successfully deleted");
-      router.push("/events");
-      router.refresh();
-    } catch (error) {
-      toast.error("Failed to delete the event");
-      console.error("Error deleting event:", error);
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const handleJoinEvent = async () => {
-    try {
-      setIsJoining(true);
-      const { data: currentEvent, error: fetchError } = await supabase
-        .from("events")
-        .select("users")
-        .eq("id", event.id)
-        .single();
-
-      if (fetchError) throw fetchError;
-
-      const currentUsers = currentEvent.users || [];
-      if (currentUsers.includes(currentUser.id)) {
-        toast.error("You're already a participant!");
-        return;
-      }
-
-      const updatedUsers = [...currentUsers, currentUser.id];
-
-      const { error: updateError } = await supabase
-        .from("events")
-        .update({ users: updatedUsers })
-        .eq("id", event.id);
-
-      if (updateError) throw updateError;
-
-      toast.success("Successfully joined the event!");
-      router.refresh();
-    } catch (error) {
-      toast.error("Failed to join the event");
-      console.error("Error joining event:", error);
-    } finally {
-      setIsJoining(false);
-    }
-  };
-
-  const handleUnjoinEvent = async () => {
-    try {
-      setIsJoining(true);
-      const { data: currentEvent, error: fetchError } = await supabase
-        .from("events")
-        .select("users")
-        .eq("id", event.id)
-        .single();
-
-      if (fetchError) throw fetchError;
-
-      const updatedUsers = (currentEvent.users || []).filter(
-        (id: string) => id !== currentUser.id
-      );
-
-      const { error: updateError } = await supabase
-        .from("events")
-        .update({ users: updatedUsers })
-        .eq("id", event.id);
-
-      if (updateError) throw updateError;
-
-      toast.success("Successfully left the event!");
-      router.refresh();
-    } catch (error) {
-      toast.error("Failed to leave the event");
-      console.error("Error leaving event:", error);
-    } finally {
-      setIsJoining(false);
-    }
-  };
-
-  const handleShare = async () => {
-    try {
-      await navigator.share({
-        title: event.title,
-        text: event.description,
-        url: window.location.href,
-      });
-    } catch (error) {
-      console.error("Error sharing:", error);
-    }
-  };
+  const {
+    isParticipant,
+    participantsCount,
+    isCreator,
+    hasSpaceLeft,
+    eventDate,
+    isUpcoming,
+    formatDate,
+  } = useEventHelpers(event, currentUser);
 
   return (
     <div className="min-h-screen bg-background">

@@ -1,6 +1,5 @@
 "use client";
-import { FC, useState, useRef, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { FC } from "react";
 import {
   CardTitle,
   CardDescription,
@@ -13,9 +12,8 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
-
+import { useEventForm } from "@/hooks/use-event-form";
+import { useEventImage } from "@/hooks/use-event-image";
 interface EventFormProps {
   event?: {
     id?: string;
@@ -34,119 +32,29 @@ interface EventFormProps {
 }
 
 const EventForm: FC<EventFormProps> = ({ event, formType, user, token }) => {
-  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-  const [isLoading, setIsLoading] = useState(false);
-  const [title, setTitle] = useState(event?.title || "");
-  const [description, setDescription] = useState(event?.description || "");
-  const [date, setDate] = useState(event?.date || "");
-  const [location, setLocation] = useState(event?.location || "");
-  const [image, setImage] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState(event?.image_url || "");
-  const [uploadedImageUrl, setUploadedImageUrl] = useState(
-    event?.image_url || ""
+  const {
+    image,
+    previewUrl,
+    uploadedImageUrl,
+    fileInputRef,
+    handleImageChange,
+    handleImageUpload,
+    openFileInput,
+  } = useEventImage({
+    initialImageUrl: event?.image_url,
+    eventId: event?.event?.id,
+  });
+
+  const { formData, isLoading, handleInputChange, handleSubmit } = useEventForm(
+    {
+      event,
+      formType,
+      user,
+      token,
+      uploadedImageUrl,
+    }
   );
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const router = useRouter();
-  const params = useParams();
-  const queryClient = useQueryClient();
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setImage(file);
-      setPreviewUrl(URL.createObjectURL(file));
-    }
-  };
-
-  const handleImageUpload = async () => {
-    if (!image) {
-      toast.error("Please select an image first");
-      return;
-    }
-
-    try {
-      const formData = new FormData();
-      formData.append("file", image);
-      if (event?.event?.id) {
-        formData.append("eventId", event.event.id);
-      }
-
-      const response = await fetch(`${BACKEND_URL}/upload`, {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to upload image");
-      }
-
-      const data = await response.json();
-      setUploadedImageUrl(data.url);
-      toast.success("Image uploaded successfully!");
-    } catch (error) {
-      console.error("Upload error:", error);
-      toast.error("Failed to upload image");
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!user) {
-      toast.error("Please log in to create events");
-      router.push("/auth");
-      return;
-    }
-
-    if (!title || !description || !date || !location) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      if (!token) {
-        throw new Error("No authentication token found");
-      }
-
-      const eventData = {
-        title,
-        description,
-        date,
-        location,
-        image_url: uploadedImageUrl,
-        creator_id: user.id,
-      };
-
-      const response = await fetch(
-        `${BACKEND_URL}/events${formType === "Edit" ? `/${params.id}` : ""}`,
-        {
-          method: formType === "Create" ? "POST" : "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(eventData),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to save event");
-      }
-
-      toast.success(
-        `Event ${formType === "Create" ? "created" : "updated"} successfully!`
-      );
-      queryClient.invalidateQueries({ queryKey: ["events"] });
-      router.push("/events");
-    } catch (error) {
-      console.error("Event save error:", error);
-      toast.error(`Failed to ${formType.toLowerCase()} event`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
   return (
     <div className="container mx-auto max-w-2xl py-8">
       <form onSubmit={handleSubmit}>
@@ -168,8 +76,8 @@ const EventForm: FC<EventFormProps> = ({ event, formType, user, token }) => {
                 className="w-full"
                 id="title"
                 placeholder="Enter the event title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                value={formData.title}
+                onChange={(e) => handleInputChange("title", e.target.value)}
               />
             </div>
             <div>
@@ -181,8 +89,10 @@ const EventForm: FC<EventFormProps> = ({ event, formType, user, token }) => {
                 id="description"
                 placeholder="Enter the event description"
                 rows={3}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                value={formData.description}
+                onChange={(e) =>
+                  handleInputChange("description", e.target.value)
+                }
               />
             </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -195,8 +105,8 @@ const EventForm: FC<EventFormProps> = ({ event, formType, user, token }) => {
                   id="date"
                   placeholder="Select the event date"
                   type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
+                  value={formData.date}
+                  onChange={(e) => handleInputChange("date", e.target.value)}
                 />
               </div>
               <div>
@@ -207,8 +117,10 @@ const EventForm: FC<EventFormProps> = ({ event, formType, user, token }) => {
                   className="w-full"
                   id="location"
                   placeholder="Enter the event location"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
+                  value={formData.location}
+                  onChange={(e) =>
+                    handleInputChange("location", e.target.value)
+                  }
                 />
               </div>
             </div>
@@ -226,10 +138,7 @@ const EventForm: FC<EventFormProps> = ({ event, formType, user, token }) => {
                 className="hidden"
               />
               <div className="flex items-center space-x-4">
-                <Button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                >
+                <Button type="button" onClick={openFileInput}>
                   Choose Image
                 </Button>
                 <Button
