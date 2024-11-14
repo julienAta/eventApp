@@ -44,9 +44,9 @@ pnpm install  # or npm install
 
 4. Configure environment variables
 
-- Locate the environment variables file in the `livrables` folder
-- Create a `.env` file in the root directory
-- Copy the contents from the provided file
+- Locate the environment variables file in the root folder
+- Add the corresponding variables to the .env.example in client root and server root
+- Rename the 2 .env.example to .env
 
 ### Running the Application
 
@@ -69,7 +69,7 @@ pnpm start
 - **Backend**: Node.js, Express
 - **Database**: PostgreSQL (Supabase)
 - **Styling**: Tailwind CSS, Sass
-- **Authentication**: Supabase Auth
+- **Authentication**: Simple
 
 ## 🛠️ Project Structure
 
@@ -108,7 +108,6 @@ Required environment variables (found in `livrables/env-variables.txt`):
 3. **Communication**
 
    - Real-time chat
-   - Participant notifications
    - Event updates
 
 4. **Financial Management**
@@ -124,14 +123,8 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 👥 Team
 
-- Julien Atanassov - Full Stack Developer
 
-## 📞 Support
-
-For support, please contact [contact information] or open an issue on GitHub.
 
 ---
 
-Built with ❤️ using Next.js and Supabase
