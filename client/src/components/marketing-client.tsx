@@ -26,6 +26,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { redirect } from "next/navigation";
+import styles from "./marketing-client.module.scss";
 
 export default function MarketingClient({ isAuth }: { isAuth: boolean }) {
   const fadeIn = {
@@ -114,27 +115,24 @@ export default function MarketingClient({ isAuth }: { isAuth: boolean }) {
       features: ["Authentication", "Real-time", "Auto-Generated APIs"],
     },
   ];
-  console.log(isAuth, "isAuth");
 
   return (
-    <main className="min-h-screen bg-background">
-      <section className="relative min-h-[calc(100vh-8rem)] flex items-center justify-center py-32">
+    <main className={styles.main}>
+      <section className={styles.hero}>
         <motion.div
-          className="container mx-auto px-4 text-center"
+          className={styles.heroContent}
           initial="hidden"
           animate="visible"
           variants={fadeIn}
           transition={{ duration: 0.6 }}
         >
-          <h1 className="text-7xl font-bold tracking-tighter text-foreground sm:text-8xl mb-8">
-            JUNBI
-          </h1>
-          <p className="mt-8 mx-auto max-w-2xl text-xl text-muted-foreground leading-relaxed">
+          <h1>JUNBI</h1>
+          <p>
             The next generation event planning platform that brings simplicity
             to complexity, making event organization effortless and enjoyable.
           </p>
           <motion.div
-            className="mt-16 flex flex-col sm:flex-row gap-6 justify-center"
+            className={styles.heroButtons}
             variants={fadeIn}
             transition={{ delay: 0 }}
           >
@@ -143,7 +141,7 @@ export default function MarketingClient({ isAuth }: { isAuth: boolean }) {
                 asChild
                 size="lg"
                 variant="default"
-                className="text-lg px-8 py-6"
+                className={styles.button}
                 onClick={() => redirect("/events")}
               >
                 <Link href="/events">Start</Link>
@@ -154,7 +152,7 @@ export default function MarketingClient({ isAuth }: { isAuth: boolean }) {
                   asChild
                   size="lg"
                   variant="outline"
-                  className="text-lg px-8 py-6"
+                  className={styles.button}
                 >
                   <Link href="/auth">Login</Link>
                 </Button>
@@ -162,7 +160,7 @@ export default function MarketingClient({ isAuth }: { isAuth: boolean }) {
                   asChild
                   size="lg"
                   variant="default"
-                  className="text-lg px-8 py-6"
+                  className={styles.button}
                 >
                   <Link href="#">Discover</Link>
                 </Button>
@@ -172,17 +170,17 @@ export default function MarketingClient({ isAuth }: { isAuth: boolean }) {
         </motion.div>
       </section>
 
-      <section className="py-32 bg-muted/50">
-        <div className="container mx-auto px-4">
+      <section className={styles.features}>
+        <div className={styles.container}>
           <motion.h2
-            className="text-4xl font-bold text-center mb-16"
+            className={styles.sectionTitle}
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
           >
             Powerful Features for Seamless Events
           </motion.h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className={styles.featuresGrid}>
             {features.map((feature, index) => (
               <motion.div
                 key={feature.title}
@@ -190,16 +188,17 @@ export default function MarketingClient({ isAuth }: { isAuth: boolean }) {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
+                className={styles.featureCard}
               >
-                <Card className="h-full hover:shadow-lg transition-shadow">
+                <Card>
                   <CardHeader>
-                    <div className="p-3 bg-primary/10 rounded-lg w-fit mb-4">
-                      <feature.icon className="h-8 w-8 text-primary" />
+                    <div className={styles.featureIcon}>
+                      <feature.icon />
                     </div>
-                    <CardTitle className="text-2xl mb-2">
+                    <CardTitle className={styles.featureTitle}>
                       {feature.title}
                     </CardTitle>
-                    <CardDescription className="text-base">
+                    <CardDescription className={styles.featureDescription}>
                       {feature.description}
                     </CardDescription>
                   </CardHeader>
@@ -210,22 +209,22 @@ export default function MarketingClient({ isAuth }: { isAuth: boolean }) {
         </div>
       </section>
 
-      <section className="py-32">
-        <div className="container mx-auto px-4">
+      <section className={styles.techStack}>
+        <div className={styles.container}>
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            className="text-center mb-16"
+            className={styles.sectionHeader}
           >
-            <h2 className="text-4xl font-bold mb-4">Our Technology Stack</h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <h2>Our Technology Stack</h2>
+            <p>
               Built with cutting-edge technologies to ensure performance,
               scalability, and developer productivity
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className={styles.techStackGrid}>
             {techStack.map((tech, index) => (
               <motion.div
                 key={tech.name}
@@ -233,30 +232,27 @@ export default function MarketingClient({ isAuth }: { isAuth: boolean }) {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
+                className={styles.techCard}
               >
-                <Card className="h-full hover:shadow-lg transition-shadow">
+                <Card>
                   <CardHeader>
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-primary/10 rounded-lg">
-                        <tech.icon className="h-6 w-6 text-primary" />
+                    <div className={styles.techHeader}>
+                      <div className={styles.techIcon}>
+                        <tech.icon />
                       </div>
                       <div>
-                        <CardTitle className="text-xl mb-1">
-                          {tech.name}
-                        </CardTitle>
+                        <CardTitle>{tech.name}</CardTitle>
                         <Badge variant="secondary">{tech.category}</Badge>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-muted-foreground mb-4">
-                      {tech.description}
-                    </p>
-                    <div className="space-y-2">
+                    <p>{tech.description}</p>
+                    <div className={styles.techFeatures}>
                       {tech.features.map((feature, i) => (
-                        <div key={i} className="flex items-center gap-2">
-                          <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                          <span className="text-sm">{feature}</span>
+                        <div key={i} className={styles.techFeature}>
+                          <div className={styles.techFeatureDot} />
+                          <span>{feature}</span>
                         </div>
                       ))}
                     </div>
@@ -268,75 +264,15 @@ export default function MarketingClient({ isAuth }: { isAuth: boolean }) {
         </div>
       </section>
 
-      <section className="py-32 bg-muted/50">
-        <div className="container mx-auto px-4">
-          <motion.div
-            className="max-w-4xl mx-auto text-center"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-4xl font-bold mb-8">About JUNBI</h2>
-            <p className="text-xl text-muted-foreground mb-16 leading-relaxed">
-              JUNBI is more than just an event planning platform - it&apos;s a
-              comprehensive solution designed to simplify the entire event
-              management process. From conception to execution, our platform
-              provides the tools you need to create memorable experiences.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.1 }}
-              >
-                <Shield className="h-12 w-12 mx-auto mb-4 text-primary" />
-                <h3 className="font-bold text-2xl mb-3">Security First</h3>
-                <p className="text-muted-foreground">
-                  RGPD compliant with end-to-end encryption for all your
-                  sensitive data
-                </p>
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.2 }}
-              >
-                <Cpu className="h-12 w-12 mx-auto mb-4 text-primary" />
-                <h3 className="font-bold text-2xl mb-3">Scalable</h3>
-                <p className="text-muted-foreground">
-                  Built to handle events of any size, from intimate gatherings
-                  to large conferences
-                </p>
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.3 }}
-              >
-                <Code2 className="h-12 w-12 mx-auto mb-4 text-primary" />
-                <h3 className="font-bold text-2xl mb-3">Modern Stack</h3>
-                <p className="text-muted-foreground">
-                  Leveraging cutting-edge technologies for the best possible
-                  user experience
-                </p>
-              </motion.div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      <section className="py-32 bg-primary text-primary-foreground">
+      <section className={styles.cta}>
         <motion.div
-          className="container mx-auto px-4 text-center"
+          className={styles.ctaContent}
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
         >
-          <h2 className="text-4xl font-bold mb-8">Ready to Get Started?</h2>
-          <p className="text-xl mb-12 max-w-2xl mx-auto opacity-90">
+          <h2>Ready to Get Started?</h2>
+          <p>
             Join JUNBI today and experience the future of event planning. Create
             your first event in minutes.
           </p>
@@ -344,7 +280,7 @@ export default function MarketingClient({ isAuth }: { isAuth: boolean }) {
             asChild
             size="lg"
             variant="secondary"
-            className="text-lg px-8 py-6"
+            className={styles.ctaButton}
           >
             <Link href="/signup">Start Planning Today</Link>
           </Button>

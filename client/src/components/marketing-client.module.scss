@@ -1,0 +1,266 @@
+// Variables
+$primary-color: #0070f3;
+$primary-foreground: #ffffff;
+$background-color: #ffffff;
+$muted-color: rgba(0, 0, 0, 0.05);
+$text-color: #000000;
+$muted-text: #666666;
+$transition-duration: 0.3s;
+
+// Mixins
+@mixin container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin grid($columns, $gap) {
+  display: grid;
+  grid-template-columns: repeat($columns, 1fr);
+  gap: $gap;
+}
+
+// Main Styles
+.main {
+  min-height: 100vh;
+  background-color: $background-color;
+}
+
+// Hero Section
+.hero {
+  position: relative;
+  min-height: calc(100vh - 8rem);
+  @include flex-center;
+  padding: 8rem 0;
+
+  &Content {
+    @include container;
+    text-align: center;
+
+    h1 {
+      font-size: 5rem;
+      font-weight: bold;
+      letter-spacing: -0.05em;
+      margin-bottom: 2rem;
+
+      @media (min-width: 640px) {
+        font-size: 6rem;
+      }
+    }
+
+    p {
+      margin: 2rem auto;
+      max-width: 32rem;
+      font-size: 1.25rem;
+      line-height: 1.75;
+      color: $muted-text;
+    }
+  }
+
+  &Buttons {
+    margin-top: 4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    justify-content: center;
+
+    @media (min-width: 640px) {
+      flex-direction: row;
+    }
+
+    .button {
+      font-size: 1.125rem;
+      padding: 1.5rem 2rem;
+    }
+  }
+}
+
+// Features Section
+.features {
+  padding: 8rem 0;
+  background-color: $muted-color;
+
+  .container {
+    @include container;
+  }
+
+  &Grid {
+    @include grid(1, 2rem);
+
+    @media (min-width: 768px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (min-width: 1024px) {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  .featureCard {
+    height: 100%;
+    transition: transform $transition-duration;
+
+    &:hover {
+      transform: translateY(-0.5rem);
+    }
+
+    .featureIcon {
+      padding: 0.75rem;
+      background-color: rgba($primary-color, 0.1);
+      border-radius: 0.5rem;
+      width: fit-content;
+      margin-bottom: 1rem;
+
+      svg {
+        width: 2rem;
+        height: 2rem;
+        color: $primary-color;
+      }
+    }
+
+    .featureTitle {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .featureDescription {
+      font-size: 1rem;
+      color: $muted-text;
+    }
+  }
+}
+
+// Tech Stack Section
+.techStack {
+  padding: 8rem 0;
+
+  .container {
+    @include container;
+  }
+
+  &Grid {
+    @include grid(1, 2rem);
+
+    @media (min-width: 768px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (min-width: 1024px) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .sectionHeader {
+    text-align: center;
+    margin-bottom: 4rem;
+
+    h2 {
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+    }
+
+    p {
+      font-size: 1.25rem;
+      color: $muted-text;
+      max-width: 32rem;
+      margin: 0 auto;
+    }
+  }
+
+  .techCard {
+    height: 100%;
+    transition: box-shadow $transition-duration;
+
+    &:hover {
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .techHeader {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .techIcon {
+      padding: 0.75rem;
+      background-color: rgba($primary-color, 0.1);
+      border-radius: 0.5rem;
+
+      svg {
+        width: 1.5rem;
+        height: 1.5rem;
+        color: $primary-color;
+      }
+    }
+
+    .techFeatures {
+      margin-top: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .techFeature {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+
+      &Dot {
+        width: 0.375rem;
+        height: 0.375rem;
+        border-radius: 50%;
+        background-color: $primary-color;
+      }
+    }
+  }
+}
+
+// CTA Section
+.cta {
+  padding: 8rem 0;
+  background-color: $primary-color;
+  color: $primary-foreground;
+
+  &Content {
+    @include container;
+    text-align: center;
+
+    h2 {
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin-bottom: 2rem;
+    }
+
+    p {
+      font-size: 1.25rem;
+      opacity: 0.9;
+      max-width: 32rem;
+      margin: 0 auto 3rem;
+    }
+  }
+
+  .ctaButton {
+    font-size: 1.125rem;
+    padding: 1.5rem 2rem;
+  }
+}
+
+// About Section
+.about {
+  padding: 8rem 0;
+  background-color: $muted-color;
+
+  .container {
+    @include container;
+    max-width: 48rem;
+    text-align: center;
+  }
+}
