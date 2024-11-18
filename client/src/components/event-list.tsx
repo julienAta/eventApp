@@ -115,9 +115,9 @@ export function EventList({ events: initialEvents }: EventListProps) {
           <Card className="group h-full hover:shadow-lg transition-all duration-300 border border-border/50">
             <CardContent className="p-6 flex flex-col h-full">
               <div className="flex items-start justify-between mb-4">
-                <div className="bg-primary/10 text-primary rounded-lg px-3 py-1 text-sm">
+                {/* <div className="bg-primary/10 text-primary rounded-lg px-3 py-1 text-sm">
                   {event.category}
-                </div>
+                </div> */}
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Users className="h-4 w-4" />
                   <span className="text-sm">{event.capacity}</span>
@@ -204,7 +204,7 @@ export function EventList({ events: initialEvents }: EventListProps) {
               className="pl-9"
             />
           </div>
-          <DropdownMenu>
+          {/* <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="flex gap-2">
                 <Filter className="h-4 w-4" />
@@ -224,7 +224,7 @@ export function EventList({ events: initialEvents }: EventListProps) {
                 </DropdownMenuCheckboxItem>
               ))}
             </DropdownMenuContent>
-          </DropdownMenu>
+          </DropdownMenu> */}
         </div>
         <div className="flex gap-4">
           <Select
