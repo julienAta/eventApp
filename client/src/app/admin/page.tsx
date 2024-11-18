@@ -7,7 +7,7 @@ async function AdminPage() {
     return <div>You are not authorized to access this page</div>;
   }
 
-  return <AdminDashboard user={user} />;
+  return <AdminDashboard />;
 }
 
 export default AdminPage;
