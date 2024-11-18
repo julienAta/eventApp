@@ -12,10 +12,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Trash2, Users, CalendarDays, MessagesSquare } from "lucide-react";
 import { Spinner } from "@/components/spinner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Stats {
   totalUsers: number;
@@ -23,7 +35,7 @@ interface Stats {
   totalMessages: number;
 }
 
-export default function AdminDashboard({ user }: { user: any }) {
+export default function AdminDashboard() {
   const [stats, setStats] = useState<Stats>({
     totalUsers: 0,
     totalEvents: 0,
@@ -34,12 +46,15 @@ export default function AdminDashboard({ user }: { user: any }) {
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedMessages, setSelectedMessages] = useState<string[]>([]);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const fetchData = async () => {
     try {
       setLoading(true);
       setError(null);
 
+      // Fetch users
       const { data: usersData, error: usersError } = await supabase
         .from("users")
         .select("*")
@@ -48,6 +63,7 @@ export default function AdminDashboard({ user }: { user: any }) {
       if (usersError)
         throw new Error("Failed to fetch users: " + usersError.message);
 
+      // Fetch events
       const { data: eventsData, error: eventsError } = await supabase
         .from("events")
         .select("*")
@@ -56,10 +72,18 @@ export default function AdminDashboard({ user }: { user: any }) {
       if (eventsError)
         throw new Error("Failed to fetch events: " + eventsError.message);
 
+      // Fetch messages
       const { data: messagesData, error: messagesError } = await supabase
         .from("chat_messages")
-        .select("*")
-        .order("created_at", { ascending: false });
+        .select(
+          `
+          *,
+          user:user_id(id, name, email),
+          event:event_id(id, title)
+        `
+        )
+        .order("created_at", { ascending: false })
+        .limit(50);
 
       if (messagesError)
         throw new Error("Failed to fetch messages: " + messagesError.message);
@@ -88,31 +112,96 @@ export default function AdminDashboard({ user }: { user: any }) {
 
   const handleDeleteUser = async (userId: string) => {
     try {
+      setDeleteLoading(true);
       const { error } = await supabase.from("users").delete().eq("id", userId);
+
       if (error) throw error;
 
       toast.success("User deleted successfully");
-      fetchData();
+      await fetchData();
     } catch (error) {
       console.error("Error deleting user:", error);
       toast.error("Failed to delete user");
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
   const handleDeleteEvent = async (eventId: number) => {
     try {
+      setDeleteLoading(true);
       const { error } = await supabase
         .from("events")
         .delete()
         .eq("id", eventId);
+
       if (error) throw error;
 
       toast.success("Event deleted successfully");
-      fetchData();
+      await fetchData();
     } catch (error) {
       console.error("Error deleting event:", error);
       toast.error("Failed to delete event");
+    } finally {
+      setDeleteLoading(false);
     }
+  };
+  const handleDeleteMessage = async (messageId: string) => {
+    try {
+      setDeleteLoading(true);
+      const { error } = await supabase
+        .from("chat_messages")
+        .delete()
+        .eq("id", messageId);
+
+      if (error) throw error;
+
+      toast.success("Message deleted successfully");
+      await fetchData();
+      setSelectedMessages((prev) => prev.filter((id) => id !== messageId));
+    } catch (error) {
+      console.error("Error deleting message:", error);
+      toast.error("Failed to delete message");
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const handleDeleteSelectedMessages = async () => {
+    if (!selectedMessages.length) return;
+
+    try {
+      setDeleteLoading(true);
+      const { error } = await supabase
+        .from("chat_messages")
+        .delete()
+        .in("id", selectedMessages);
+
+      if (error) throw error;
+
+      toast.success(`${selectedMessages.length} messages deleted successfully`);
+      await fetchData();
+      setSelectedMessages([]);
+    } catch (error) {
+      console.error("Error deleting messages:", error);
+      toast.error("Failed to delete messages");
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const toggleMessageSelection = (messageId: string) => {
+    setSelectedMessages((prev) =>
+      prev.includes(messageId)
+        ? prev.filter((id) => id !== messageId)
+        : [...prev, messageId]
+    );
+  };
+
+  const toggleAllMessages = () => {
+    setSelectedMessages((prev) =>
+      prev.length === messages.length ? [] : messages.map((m) => m.id)
+    );
   };
 
   if (loading) {
@@ -210,14 +299,39 @@ export default function AdminDashboard({ user }: { user: any }) {
                         {new Date(user.created_at).toLocaleDateString()}
                       </TableCell>
                       <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteUser(user.id)}
-                          disabled={user.role === "admin"}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              disabled={user.role === "admin" || deleteLoading}
+                            >
+                              {deleteLoading ? (
+                                <Spinner />
+                              ) : (
+                                <Trash2 className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will permanently delete this user and all
+                                their data. This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteUser(user.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -240,7 +354,6 @@ export default function AdminDashboard({ user }: { user: any }) {
                     <TableHead>Created By</TableHead>
                     <TableHead>Location</TableHead>
                     <TableHead>Date</TableHead>
-                    <TableHead>Participants</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -253,15 +366,40 @@ export default function AdminDashboard({ user }: { user: any }) {
                       <TableCell>
                         {new Date(event.date).toLocaleDateString()}
                       </TableCell>
-                      <TableCell>{event.users?.length || 0}</TableCell>
                       <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteEvent(event.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              disabled={deleteLoading}
+                            >
+                              {deleteLoading ? (
+                                <Spinner />
+                              ) : (
+                                <Trash2 className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will permanently delete this event and all
+                                associated data. This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteEvent(event.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -273,32 +411,152 @@ export default function AdminDashboard({ user }: { user: any }) {
 
         <TabsContent value="messages">
           <Card>
-            <CardHeader>
+            <CardHeader className="space-y-6">
               <CardTitle>Messages</CardTitle>
+              <div className="flex justify-between items-center">
+                <div className="text-sm text-muted-foreground">
+                  {selectedMessages.length} of {messages.length} selected
+                </div>
+                {selectedMessages.length > 0 && (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        disabled={deleteLoading}
+                        className="flex items-center gap-2"
+                      >
+                        {deleteLoading ? (
+                          <Spinner />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                        Delete Selected ({selectedMessages.length})
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will permanently delete {selectedMessages.length}{" "}
+                          selected messages. This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleDeleteSelectedMessages}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>User</TableHead>
-                    <TableHead>Event</TableHead>
-                    <TableHead>Message</TableHead>
-                    <TableHead>Sent At</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {messages.map((message) => (
-                    <TableRow key={message.id}>
-                      <TableCell>{message.user?.name || "Unknown"}</TableCell>
-                      <TableCell>{message.event?.title || "Unknown"}</TableCell>
-                      <TableCell>{message.content}</TableCell>
-                      <TableCell>
-                        {new Date(message.created_at).toLocaleString()}
-                      </TableCell>
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[50px]">
+                        <Checkbox
+                          checked={selectedMessages.length === messages.length}
+                          onCheckedChange={toggleAllMessages}
+                        />
+                      </TableHead>
+                      <TableHead className="w-[200px]">User</TableHead>
+                      <TableHead className="w-[200px]">Event</TableHead>
+                      <TableHead>Message</TableHead>
+                      <TableHead className="w-[180px]">Sent At</TableHead>
+                      <TableHead className="w-[70px]">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {messages.map((message) => (
+                      <TableRow
+                        key={message.id}
+                        className={
+                          selectedMessages.includes(message.id)
+                            ? "bg-muted/50"
+                            : ""
+                        }
+                      >
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedMessages.includes(message.id)}
+                            onCheckedChange={() =>
+                              toggleMessageSelection(message.id)
+                            }
+                          />
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          <div className="truncate max-w-[180px]">
+                            {message.user?.name || "Unknown"}
+                          </div>
+                          {message.user?.email && (
+                            <div className="truncate max-w-[180px] text-sm text-muted-foreground">
+                              {message.user.email}
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell className="truncate max-w-[180px]">
+                          {message.event?.title || "Unknown"}
+                        </TableCell>
+                        <TableCell>
+                          <div className="truncate max-w-[300px]">
+                            {message.content}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {new Date(message.created_at).toLocaleString()}
+                        </TableCell>
+                        <TableCell>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                disabled={deleteLoading}
+                              >
+                                {deleteLoading ? (
+                                  <Spinner />
+                                ) : (
+                                  <Trash2 className="h-4 w-4" />
+                                )}
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                  Are you sure?
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This will permanently delete this message.
+                                  This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() =>
+                                    handleDeleteMessage(message.id)
+                                  }
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
