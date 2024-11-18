@@ -75,11 +75,7 @@ export default async function EventDetailPage({
               />
             </div>
             <div className="w-full md:w-1/2 px-4">
-              <ExpenseManager
-                participants={eventParticipants}
-                eventId={params.id}
-                currentUser={user}
-              />
+              <ExpenseManager eventId={params.id} currentUser={user} />
             </div>
           </>
         )}
