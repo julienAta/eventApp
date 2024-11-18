@@ -40,7 +40,7 @@ export default async function EventDetailPage({
   const eventParticipants = event.users;
   const accessToken = await getAccessToken();
   const isParticipant = eventParticipants?.includes(user.id);
-
+  const isCreator = event.creator_id === user.id;
   if (!accessToken) {
     return <div>You are not authorized to access this page</div>;
   }
@@ -52,7 +52,7 @@ export default async function EventDetailPage({
           <EventDetail event={event} currentUser={user} />
         </div>
 
-        {!isParticipant && (
+        {!isParticipant && !isCreator && (
           <div className="w-full px-4 mb-8">
             <Alert>
               <AlertDescription>
@@ -63,20 +63,21 @@ export default async function EventDetailPage({
           </div>
         )}
 
-        {isParticipant && (
-          <>
-            <div className="w-full md:w-1/2 px-4 mb-8 md:mb-0">
-              <Chat
-                token={accessToken}
-                eventId={params.id}
-                currentUser={user}
-              />
-            </div>
-            <div className="w-full md:w-1/2 px-4">
-              <ExpenseManager eventId={params.id} currentUser={user} />
-            </div>
-          </>
-        )}
+        {isParticipant ||
+          (isCreator && (
+            <>
+              <div className="w-full md:w-1/2 px-4 mb-8 md:mb-0">
+                <Chat
+                  token={accessToken}
+                  eventId={params.id}
+                  currentUser={user}
+                />
+              </div>
+              <div className="w-full md:w-1/2 px-4">
+                <ExpenseManager eventId={params.id} currentUser={user} />
+              </div>
+            </>
+          ))}
       </div>
     </div>
   );
