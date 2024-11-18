@@ -21,21 +21,20 @@ import {
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Card, CardTitle } from "./ui/card";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+import { supabase } from "@/lib/supabase";
 
 interface Expense {
   id: number;
-  eventId: number;
+  event_id: number;
   description: string;
   amount: number;
   date: string;
-  paidBy: string;
+  paid_by: string;
 }
 
 interface ExpenseManagerProps {
   eventId: number;
-  currentUser: { id: number; name: string };
+  currentUser: { id: string; name: string };
 }
 
 export default function ExpenseManager({
@@ -44,8 +43,8 @@ export default function ExpenseManager({
 }: ExpenseManagerProps) {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [newExpense, setNewExpense] = useState<Partial<Expense>>({
-    eventId,
-    paidBy: currentUser.name,
+    event_id: eventId,
+    paid_by: currentUser.id,
     date: new Date().toISOString().split("T")[0],
   });
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -57,85 +56,94 @@ export default function ExpenseManager({
   }, [eventId]);
 
   const fetchExpenses = async () => {
-    const token = localStorage.getItem("token");
-    const response = await fetch(`${API_BASE_URL}/expenses/event/${eventId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    if (response.ok) {
-      const data = await response.json();
-      setExpenses(data);
+    const { data, error } = await supabase
+      .from("expenses")
+      .select(
+        `
+        *,
+        users (
+          name
+        )
+      `
+      )
+      .eq("event_id", eventId)
+      .order("date", { ascending: false });
+
+    if (error) {
+      toast.error("Failed to fetch expenses");
+      return;
+    }
+
+    if (data) {
+      const formattedExpenses = data.map((expense: any) => ({
+        ...expense,
+      }));
+      setExpenses(formattedExpenses);
     }
   };
 
   const handleAddExpense = async () => {
-    const token = localStorage.getItem("token");
-    const response = await fetch(`${API_BASE_URL}/expenses`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        event_id: eventId,
-        description: newExpense.description,
-        amount: newExpense.amount,
-        date: newExpense.date,
-        paid_by: newExpense.paidBy,
-      }),
+    const { error } = await supabase.from("expenses").insert({
+      event_id: eventId,
+      description: newExpense.description,
+      amount: newExpense.amount,
+      date: newExpense.date,
+      paid_by: currentUser.id,
     });
-    if (response.ok) {
-      fetchExpenses();
-      setIsAddDialogOpen(false);
-      setNewExpense({
-        eventId,
-        paidBy: currentUser.name,
-        date: new Date().toISOString().split("T")[0],
-      });
-      toast("Expense added successfully");
+
+    if (error) {
+      toast.error("Failed to add expense");
+      return;
     }
+
+    fetchExpenses();
+    setIsAddDialogOpen(false);
+    setNewExpense({
+      event_id: eventId,
+      paid_by: currentUser.id,
+      date: new Date().toISOString().split("T")[0],
+    });
+    toast.success("Expense added successfully");
   };
 
   const handleEditExpense = async () => {
     if (!editingExpense) return;
-    const token = localStorage.getItem("token");
-    const response = await fetch(
-      `${API_BASE_URL}/expenses/${editingExpense.id}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(editingExpense),
-      }
-    );
-    if (response.ok) {
-      fetchExpenses();
-      setIsEditDialogOpen(false);
-      setEditingExpense(null);
-      setNewExpense({
-        eventId,
-        paidBy: currentUser.name,
-        date: new Date().toISOString().split("T")[0],
-      });
-      toast("Expense updated successfully");
+
+    const { error } = await supabase
+      .from("expenses")
+      .update({
+        description: editingExpense.description,
+        amount: editingExpense.amount,
+        date: editingExpense.date,
+      })
+      .eq("id", editingExpense.id)
+      .eq("paid_by", currentUser.id); // Ensure user can only edit their own expenses
+
+    if (error) {
+      toast.error("Failed to update expense");
+      return;
     }
+
+    fetchExpenses();
+    setIsEditDialogOpen(false);
+    setEditingExpense(null);
+    toast.success("Expense updated successfully");
   };
 
   const handleDeleteExpense = async (id: number) => {
-    const token = localStorage.getItem("token");
-    const response = await fetch(`${API_BASE_URL}/expenses/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    if (response.ok) {
-      fetchExpenses();
-      toast("Expense deleted successfully");
+    const { error } = await supabase
+      .from("expenses")
+      .delete()
+      .eq("id", id)
+      .eq("paid_by", currentUser.id); // Ensure user can only delete their own expenses
+
+    if (error) {
+      toast.error("Failed to delete expense");
+      return;
     }
+
+    fetchExpenses();
+    toast.success("Expense deleted successfully");
   };
 
   return (
@@ -211,7 +219,6 @@ export default function ExpenseManager({
             <TableHead>Description</TableHead>
             <TableHead>Amount</TableHead>
             <TableHead>Date</TableHead>
-            <TableHead>Paid By</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -223,25 +230,28 @@ export default function ExpenseManager({
               <TableCell>
                 {new Date(expense.date).toLocaleDateString()}
               </TableCell>
-              <TableCell>{expense.paidBy}</TableCell>
               <TableCell>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    setEditingExpense(expense);
-                    setIsEditDialogOpen(true);
-                  }}
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleDeleteExpense(expense.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                {expense.paid_by === currentUser.id && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        setEditingExpense(expense);
+                        setIsEditDialogOpen(true);
+                      }}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDeleteExpense(expense.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </>
+                )}
               </TableCell>
             </TableRow>
           ))}
