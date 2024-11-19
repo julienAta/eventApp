@@ -240,7 +240,7 @@ export const loginUser = async (req: Request, res: Response) => {
       role: user.role,
     };
 
-    const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: "15m" });
+    const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: "50m" });
     const refreshToken = jwt.sign({ id: user.id }, REFRESH_SECRET, {
       expiresIn: "7d",
     });
